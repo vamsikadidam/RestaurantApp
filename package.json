@@ -1,0 +1,38 @@
+{
+  "name": "restaurant-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for the restaurant ordering platform (Flutter mobile app, NestJS API, Next.js admin portal, Clover integration).",
+  "workspaces": [
+    "apps/api",
+    "apps/admin-web",
+    "packages/shared-types",
+    "packages/api-client",
+    "packages/eslint-config"
+  ],
+  "scripts": {
+    "api:dev": "npm run start:dev --workspace=apps/api",
+    "api:build": "npm run build --workspace=apps/api",
+    "api:test": "npm run test --workspace=apps/api",
+    "api:lint": "npm run lint --workspace=apps/api",
+    "admin:dev": "npm run dev --workspace=apps/admin-web",
+    "admin:build": "npm run build --workspace=apps/admin-web",
+    "build:packages": "npm run build --workspace=packages/shared-types",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "prisma:generate": "npm run prisma:generate --workspace=apps/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace=apps/api",
+    "prisma:seed": "npm run prisma:seed --workspace=apps/api"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "allowScripts": {
+    "@nestjs/core@10.4.22": true,
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "prisma@5.22.0": true,
+    "unrs-resolver@1.12.2": true,
+    "argon2@0.41.1": true
+  }
+}

@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Env files - never commit real secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Build output
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Prisma
+apps/api/prisma/migrations/dev/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Flutter / Dart
+apps/mobile/.dart_tool/
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+apps/mobile/.packages
+apps/mobile/.pub-cache/
+apps/mobile/.pub/
+apps/mobile/build/
+apps/mobile/android/local.properties
+apps/mobile/android/key.properties
+apps/mobile/**/*.jks
+apps/mobile/**/*.keystore
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+apps/mobile/ios/Pods/
+
+# Firebase config with real project data (developers add their own locally)
+apps/mobile/android/app/google-services.json
+apps/mobile/ios/Runner/GoogleService-Info.plist
+apps/api/firebase-service-account.json
+
+# Docker
+docker/data/
+
+# Misc
+*.pem
+*.key
+!apps/api/test/**/*.key

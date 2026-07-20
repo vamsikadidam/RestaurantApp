@@ -1,0 +1,27 @@
+{
+  "name": "@restaurant-platform/admin-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Restaurant admin & employee web portal (Next.js). Full order dashboard, menu controls, and reports are built in Phase 6.",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@restaurant-platform/shared-types": "*",
+    "@restaurant-platform/api-client": "*",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.11",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.15",
+    "typescript": "^5.6.3"
+  }
+}

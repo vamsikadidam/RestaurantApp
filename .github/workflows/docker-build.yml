@@ -1,0 +1,35 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "docker-compose.yml"
+      - ".github/workflows/docker-build.yml"
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - "packages/**"
+      - "docker-compose.yml"
+      - ".github/workflows/docker-build.yml"
+
+jobs:
+  build-api-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build API production image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          target: production
+          push: false
+          tags: restaurant-platform-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

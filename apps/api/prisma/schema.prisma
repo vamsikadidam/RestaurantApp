@@ -1,0 +1,873 @@
+// Restaurant Ordering Platform - Prisma Schema
+// Money is always stored as an Int in minor currency units (cents). Never use Float for money.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRoleType {
+  CUSTOMER
+  RESTAURANT_ADMIN
+  RESTAURANT_EMPLOYEE
+}
+
+enum FulfillmentType {
+  PICKUP
+  DELIVERY
+}
+
+enum CartStatus {
+  ACTIVE
+  CONVERTED
+  ABANDONED
+}
+
+enum OrderStatus {
+  CART
+  PENDING_PAYMENT
+  PAYMENT_PROCESSING
+  PAYMENT_FAILED
+  PAID
+  SUBMITTED_TO_RESTAURANT
+  ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  COMPLETED
+  REJECTED
+  CANCELLED
+  REFUND_PENDING
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum OrderStatusSource {
+  CUSTOMER
+  EMPLOYEE
+  ADMINISTRATOR
+  CLOVER
+  SYSTEM
+}
+
+enum PaymentProviderMode {
+  CLOVER_ECOMMERCE
+  CLOVER_TERMINAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum MenuItemSyncStatus {
+  SYNCED
+  PENDING
+  FAILED
+  LOCAL_ONLY
+}
+
+enum CloverConnectionStatus {
+  ACTIVE
+  DISCONNECTED
+  ERROR
+}
+
+enum SyncJobType {
+  FULL
+  INCREMENTAL
+  MANUAL
+  SCHEDULED
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  PARTIAL
+}
+
+enum NotificationChannel {
+  PUSH
+  EMAIL
+  SMS
+}
+
+enum DevicePlatform {
+  ANDROID
+  IOS
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  DEAD_LETTER
+}
+
+// =============================================================================
+// USERS & AUTH
+// =============================================================================
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String?   @unique
+  passwordHash        String?
+  firstName           String?
+  lastName            String?
+  phone               String?
+  isGuest             Boolean   @default(false)
+  googleId            String?   @unique
+  emailVerifiedAt     DateTime?
+  deletionRequestedAt DateTime?
+  notificationPrefs   Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  roles                 UserRole[]
+  addresses              CustomerAddress[]
+  carts                  Cart[]
+  orders                 Order[]
+  favorites              Favorite[]
+  deviceTokens           DeviceToken[]
+  notifications          Notification[]
+  refreshTokens          RefreshToken[]
+  passwordResetTokens    PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  refundsInitiated       Refund[]                @relation("RefundInitiatedBy")
+  auditLogs              AuditLog[]
+  connectedCloverAccounts CloverConnection[]
+  syncJobsTriggered      SyncJob[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model UserRole {
+  id                   String        @id @default(cuid())
+  userId               String
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                 UserRoleType
+  restaurantId         String?
+  restaurant           Restaurant?   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantLocationId String?
+  restaurantLocation   RestaurantLocation? @relation(fields: [restaurantLocationId], references: [id], onDelete: Cascade)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@unique([userId, role, restaurantId, restaurantLocationId])
+  @@index([restaurantId])
+  @@index([restaurantLocationId])
+  @@map("user_roles")
+}
+
+model RefreshToken {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash        String    @unique
+  replacedByTokenId String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdByIp      String?
+  userAgent        String?
+  createdAt        DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("email_verification_tokens")
+}
+
+// =============================================================================
+// RESTAURANT
+// =============================================================================
+
+model Restaurant {
+  id                      String   @id @default(cuid())
+  name                    String
+  slug                    String   @unique
+  description             String?
+  logoUrl                 String?
+  bannerUrl               String?
+  currency                String   @default("USD")
+  country                 String   @default("US")
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  deletedAt               DateTime?
+
+  locations    RestaurantLocation[]
+  categories   MenuCategory[]
+  menuItems    MenuItem[]
+  modifierGroups ModifierGroup[]
+  promotions   Promotion[]
+  userRoles    UserRole[]
+  syncJobs     SyncJob[]
+  orders       Order[]
+
+  @@map("restaurants")
+}
+
+model RestaurantLocation {
+  id                       String   @id @default(cuid())
+  restaurantId             String
+  restaurant               Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  name                     String
+  addressLine1             String
+  addressLine2             String?
+  city                     String
+  state                    String
+  postalCode               String
+  country                  String   @default("US")
+  latitude                 Float?
+  longitude                Float?
+  phone                    String?
+  timezone                 String   @default("America/New_York")
+  isPrimary                Boolean  @default(false)
+  pickupEnabled            Boolean  @default(true)
+  deliveryEnabled          Boolean  @default(true)
+  deliveryRadiusMeters     Int?
+  minimumOrderAmountCents  Int      @default(0)
+  deliveryFeeCents         Int      @default(0)
+  serviceFeeCents          Int      @default(0)
+  serviceFeeBasisPoints    Int      @default(0)
+  defaultPrepTimeMinutes   Int      @default(25)
+  tipPresetsBasisPoints    Int[]    @default([1000, 1500, 1800, 2000])
+  isActive                 Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  deletedAt                DateTime?
+
+  hours            RestaurantHours[]
+  cloverConnection CloverConnection?
+  userRoles        UserRole[]
+  carts            Cart[]
+  orders           Order[]
+
+  @@index([restaurantId])
+  @@map("restaurant_locations")
+}
+
+model RestaurantHours {
+  id                   String   @id @default(cuid())
+  restaurantLocationId String
+  restaurantLocation   RestaurantLocation @relation(fields: [restaurantLocationId], references: [id], onDelete: Cascade)
+  dayOfWeek            Int      // 0 = Sunday .. 6 = Saturday
+  opensAtMinutes       Int      // minutes from midnight, local restaurant timezone
+  closesAtMinutes      Int
+  isClosed             Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([restaurantLocationId, dayOfWeek])
+  @@map("restaurant_hours")
+}
+
+model CloverConnection {
+  id                     String   @id @default(cuid())
+  restaurantLocationId   String   @unique
+  restaurantLocation     RestaurantLocation @relation(fields: [restaurantLocationId], references: [id], onDelete: Cascade)
+  cloverMerchantId       String   @unique
+  accessTokenEncrypted   String
+  refreshTokenEncrypted  String?
+  tokenType              String?
+  scopes                 String[]
+  accessTokenExpiresAt   DateTime?
+  status                 CloverConnectionStatus @default(ACTIVE)
+  connectedByUserId      String?
+  connectedByUser        User?    @relation(fields: [connectedByUserId], references: [id])
+  connectedAt            DateTime @default(now())
+  lastSyncAt             DateTime?
+  disconnectedAt         DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([cloverMerchantId])
+  @@map("clover_connections")
+}
+
+// =============================================================================
+// MENU
+// =============================================================================
+
+model MenuCategory {
+  id               String   @id @default(cuid())
+  restaurantId     String
+  restaurant       Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  cloverCategoryId String?
+  name             String
+  description      String?
+  imageUrl         String?
+  displayOrder     Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  menuItems MenuItem[]
+
+  @@unique([restaurantId, cloverCategoryId])
+  @@index([restaurantId])
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id                 String   @id @default(cuid())
+  restaurantId       String
+  restaurant         Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categoryId         String?
+  category           MenuCategory? @relation(fields: [categoryId], references: [id])
+  cloverItemId       String?
+  sku                String?
+  name               String
+  description        String?
+  cloverDescription  String?
+  priceCents         Int
+  imageUrl           String?
+  cloverImageUrl     String?
+  taxRateBasisPoints Int      @default(0)
+  isAvailable        Boolean  @default(true)
+  isSoldOutOverride  Boolean  @default(false)
+  isFeatured         Boolean  @default(false)
+  featuredOrder      Int?
+  isActive           Boolean  @default(true)
+  syncStatus         MenuItemSyncStatus @default(LOCAL_ONLY)
+  lastSyncedAt       DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  modifierGroups MenuItemModifierGroup[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  favorites      Favorite[]
+
+  @@unique([restaurantId, cloverItemId])
+  @@index([restaurantId])
+  @@index([categoryId])
+  @@map("menu_items")
+}
+
+model ModifierGroup {
+  id                    String   @id @default(cuid())
+  restaurantId          String
+  restaurant            Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  cloverModifierGroupId String?
+  name                  String
+  minSelect             Int      @default(0)
+  maxSelect             Int?
+  isRequired            Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deletedAt             DateTime?
+
+  options   ModifierOption[]
+  menuItems MenuItemModifierGroup[]
+
+  @@unique([restaurantId, cloverModifierGroupId])
+  @@index([restaurantId])
+  @@map("modifier_groups")
+}
+
+model ModifierOption {
+  id               String   @id @default(cuid())
+  modifierGroupId  String
+  modifierGroup    ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  cloverModifierId String?
+  name             String
+  priceCents       Int      @default(0)
+  maxQuantity      Int      @default(1)
+  isAvailable      Boolean  @default(true)
+  displayOrder     Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  cartItemModifiers  CartItemModifier[]
+  orderItemModifiers OrderItemModifier[]
+
+  @@unique([modifierGroupId, cloverModifierId])
+  @@index([modifierGroupId])
+  @@map("modifier_options")
+}
+
+model MenuItemModifierGroup {
+  id              String   @id @default(cuid())
+  menuItemId      String
+  menuItem        MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  modifierGroupId String
+  modifierGroup   ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+  displayOrder    Int      @default(0)
+
+  @@unique([menuItemId, modifierGroupId])
+  @@map("menu_item_modifier_groups")
+}
+
+// =============================================================================
+// CUSTOMER ADDRESSES
+// =============================================================================
+
+model CustomerAddress {
+  id                   String   @id @default(cuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label                String?
+  addressLine1         String
+  addressLine2         String?
+  city                 String
+  state                String
+  postalCode           String
+  country              String   @default("US")
+  latitude             Float?
+  longitude            Float?
+  deliveryInstructions String?
+  isDefault            Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
+
+  carts  Cart[]
+  orders Order[]
+
+  @@index([userId])
+  @@map("customer_addresses")
+}
+
+// =============================================================================
+// CART
+// =============================================================================
+
+model Cart {
+  id                   String   @id @default(cuid())
+  userId               String?
+  user                 User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestToken           String?  @unique
+  restaurantLocationId String
+  restaurantLocation   RestaurantLocation @relation(fields: [restaurantLocationId], references: [id])
+  fulfillmentType      FulfillmentType?
+  deliveryAddressId    String?
+  deliveryAddress      CustomerAddress? @relation(fields: [deliveryAddressId], references: [id])
+  promoCode            String?
+  status               CartStatus @default(ACTIVE)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  expiresAt            DateTime?
+
+  items CartItem[]
+
+  @@index([userId])
+  @@index([guestToken])
+  @@map("carts")
+}
+
+model CartItem {
+  id                     String   @id @default(cuid())
+  cartId                 String
+  cart                   Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  menuItemId             String
+  menuItem               MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity               Int      @default(1)
+  specialInstructions    String?
+  unitPriceCentsSnapshot Int
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  modifiers CartItemModifier[]
+
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+model CartItemModifier {
+  id               String   @id @default(cuid())
+  cartItemId       String
+  cartItem         CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  modifierOptionId String
+  modifierOption   ModifierOption @relation(fields: [modifierOptionId], references: [id])
+  quantity         Int      @default(1)
+  createdAt        DateTime @default(now())
+
+  @@index([cartItemId])
+  @@map("cart_item_modifiers")
+}
+
+// =============================================================================
+// ORDERS
+// =============================================================================
+
+model Order {
+  id                   String   @id @default(cuid())
+  publicOrderNumber    String   @unique
+  userId               String?
+  user                 User?    @relation(fields: [userId], references: [id])
+  guestEmail           String?
+  guestPhone           String?
+  restaurantId         String
+  restaurant           Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantLocationId String
+  restaurantLocation   RestaurantLocation @relation(fields: [restaurantLocationId], references: [id])
+  fulfillmentType      FulfillmentType
+  deliveryAddressId    String?
+  deliveryAddress      CustomerAddress? @relation(fields: [deliveryAddressId], references: [id])
+  deliveryAddressSnapshot Json?
+  status               OrderStatus @default(CART)
+
+  subtotalCents   Int @default(0)
+  taxCents        Int @default(0)
+  serviceFeeCents Int @default(0)
+  deliveryFeeCents Int @default(0)
+  discountCents   Int @default(0)
+  tipCents        Int @default(0)
+  totalCents      Int @default(0)
+  currency        String @default("USD")
+
+  promotionId String?
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  promoCode   String?
+
+  specialInstructions String?
+  estimatedReadyAt    DateTime?
+  acceptedAt          DateTime?
+  rejectedAt          DateTime?
+  completedAt         DateTime?
+  cancelledAt         DateTime?
+  cancellationReason  String?
+
+  idempotencyKey String  @unique
+  cloverOrderId  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  payments        Payment[]
+  refunds         Refund[]
+  promotionRedemption PromotionRedemption?
+  notifications   Notification[]
+
+  @@unique([restaurantId, cloverOrderId])
+  @@index([userId])
+  @@index([restaurantId, status])
+  @@index([restaurantLocationId, status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                  String   @id @default(cuid())
+  orderId             String
+  order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId          String?
+  menuItem            MenuItem? @relation(fields: [menuItemId], references: [id])
+  nameSnapshot        String
+  skuSnapshot         String?
+  unitPriceCents      Int
+  quantity            Int
+  specialInstructions String?
+  lineTotalCents      Int
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  modifiers OrderItemModifier[]
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model OrderItemModifier {
+  id               String   @id @default(cuid())
+  orderItemId      String
+  orderItem        OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  modifierOptionId String?
+  modifierOption   ModifierOption? @relation(fields: [modifierOptionId], references: [id])
+  nameSnapshot     String
+  unitPriceCents   Int
+  quantity         Int      @default(1)
+  createdAt        DateTime @default(now())
+
+  @@index([orderItemId])
+  @@map("order_item_modifiers")
+}
+
+model OrderStatusHistory {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  previousStatus OrderStatus?
+  newStatus      OrderStatus
+  actorUserId    String?
+  source         OrderStatusSource
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+// =============================================================================
+// PAYMENTS & REFUNDS
+// =============================================================================
+
+model Payment {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id])
+  provider       PaymentProviderMode
+  status         PaymentStatus @default(PENDING)
+  amountCents    Int
+  currency       String   @default("USD")
+  cloverPaymentId String?  @unique
+  cloverOrderId  String?
+  tokenReference String?
+  failureReason  String?
+  idempotencyKey String   @unique
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  refunds Refund[]
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model Refund {
+  id                String   @id @default(cuid())
+  paymentId         String
+  payment           Payment  @relation(fields: [paymentId], references: [id])
+  orderId           String
+  order             Order    @relation(fields: [orderId], references: [id])
+  amountCents       Int
+  reason            String?
+  status            RefundStatus @default(PENDING)
+  cloverRefundId    String?  @unique
+  initiatedByUserId String?
+  initiatedByUser   User?    @relation("RefundInitiatedBy", fields: [initiatedByUserId], references: [id])
+  processedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([paymentId])
+  @@index([orderId])
+  @@map("refunds")
+}
+
+// =============================================================================
+// PROMOTIONS & FAVORITES
+// =============================================================================
+
+model Promotion {
+  id                     String   @id @default(cuid())
+  restaurantId           String
+  restaurant             Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  code                   String
+  description            String?
+  type                   PromotionType
+  percentageBasisPoints  Int?
+  fixedAmountCents       Int?
+  minimumOrderAmountCents Int     @default(0)
+  maxRedemptionsTotal    Int?
+  maxRedemptionsPerUser  Int?     @default(1)
+  startsAt               DateTime?
+  endsAt                 DateTime?
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  deletedAt              DateTime?
+
+  orders     Order[]
+  redemptions PromotionRedemption[]
+
+  @@unique([restaurantId, code])
+  @@index([restaurantId])
+  @@map("promotions")
+}
+
+model PromotionRedemption {
+  id                 String   @id @default(cuid())
+  promotionId        String
+  promotion          Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  userId             String?
+  orderId            String   @unique
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  discountAppliedCents Int
+  createdAt          DateTime @default(now())
+
+  @@index([promotionId])
+  @@index([userId])
+  @@map("promotion_redemptions")
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, menuItemId])
+  @@map("favorites")
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  platform   DevicePlatform
+  isActive   Boolean  @default(true)
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id])
+  title     String
+  body      String
+  type      String
+  channel   NotificationChannel
+  data      Json?
+  readAt    DateTime?
+  sentAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([orderId])
+  @@map("notifications")
+}
+
+// =============================================================================
+// CLOVER WEBHOOKS & SYNC
+// =============================================================================
+
+model WebhookEvent {
+  id             String   @id @default(cuid())
+  provider       String   @default("CLOVER")
+  cloverEventId  String   @unique
+  eventType      String
+  merchantId     String?
+  payload        Json
+  signatureValid Boolean
+  status         WebhookEventStatus @default(RECEIVED)
+  attempts       Int      @default(0)
+  lastError      String?
+  receivedAt     DateTime @default(now())
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("webhook_events")
+}
+
+model SyncJob {
+  id                String   @id @default(cuid())
+  restaurantId      String
+  restaurant        Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  type              SyncJobType
+  status            SyncJobStatus @default(PENDING)
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  itemsSynced       Int      @default(0)
+  itemsCreated      Int      @default(0)
+  itemsUpdated      Int      @default(0)
+  itemsSoftDeleted  Int      @default(0)
+  itemsFailed       Int      @default(0)
+  triggeredByUserId String?
+  triggeredByUser   User?    @relation(fields: [triggeredByUserId], references: [id])
+  errorSummary      String?
+  logs              Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([restaurantId, status])
+  @@map("sync_jobs")
+}
+
+// =============================================================================
+// AUDIT
+// =============================================================================
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  actorUserId    String?
+  actorUser      User?    @relation(fields: [actorUserId], references: [id])
+  actorRole      String?
+  action         String
+  entityType     String
+  entityId       String
+  previousValue  Json?
+  newValue       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
