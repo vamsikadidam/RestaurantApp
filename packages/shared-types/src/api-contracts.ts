@@ -1,4 +1,4 @@
-import { FulfillmentType, OrderStatus, PaymentProviderMode } from './enums';
+import { FulfillmentType, OrderStatus, PaymentProviderMode, UserRoleType } from './enums';
 
 /**
  * Lightweight shared response/request shapes. These are intentionally
@@ -80,4 +80,161 @@ export interface ApiErrorResponse {
   details?: Record<string, unknown>;
   timestamp: string;
   path: string;
+}
+
+// =============================================================================
+// Admin portal (Phase 6) - auth identity, orders, menu management, business
+// settings, and reports. See apps/api/src/{auth,orders,menu,restaurants,reports}.
+// =============================================================================
+
+export interface AuthUser {
+  id: string;
+  email: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  isGuest: boolean;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresIn: string;
+}
+
+export interface LoginResponse extends AuthTokens {
+  user: AuthUser;
+}
+
+export interface CurrentUserRole {
+  role: UserRoleType;
+  restaurantId?: string | null;
+  restaurantLocationId?: string | null;
+}
+
+export interface CurrentUser {
+  userId: string;
+  email?: string | null;
+  isGuest: boolean;
+  roles: CurrentUserRole[];
+}
+
+export interface OrderItemModifierDetail {
+  id: string;
+  nameSnapshot: string;
+  unitPriceCents: number;
+  quantity: number;
+}
+
+export interface OrderItemDetail {
+  id: string;
+  nameSnapshot: string;
+  unitPriceCents: number;
+  quantity: number;
+  lineTotalCents: number;
+  specialInstructions?: string | null;
+  modifiers: OrderItemModifierDetail[];
+}
+
+export interface OrderDetail {
+  id: string;
+  publicOrderNumber: string;
+  status: OrderStatus;
+  fulfillmentType: FulfillmentType;
+  subtotalCents: number;
+  taxCents: number;
+  serviceFeeCents: number;
+  deliveryFeeCents: number;
+  discountCents: number;
+  tipCents: number;
+  totalCents: number;
+  currency: string;
+  specialInstructions?: string | null;
+  createdAt: string;
+  items: OrderItemDetail[];
+  payments: Array<{ id: string; status: string; amountCents: number; provider: PaymentProviderMode }>;
+  refunds: Array<{ id: string; status: string; amountCents: number }>;
+}
+
+export interface RestaurantHoursEntry {
+  dayOfWeek: number;
+  opensAtMinutes: number;
+  closesAtMinutes: number;
+  isClosed: boolean;
+}
+
+export interface RestaurantLocationSettings {
+  id: string;
+  restaurantId: string;
+  name: string;
+  pickupEnabled: boolean;
+  deliveryEnabled: boolean;
+  deliveryRadiusMeters: number | null;
+  minimumOrderAmountCents: number;
+  deliveryFeeCents: number;
+  serviceFeeCents: number;
+  serviceFeeBasisPoints: number;
+  defaultPrepTimeMinutes: number;
+  tipPresetsBasisPoints: number[];
+  isActive: boolean;
+  hours: RestaurantHoursEntry[];
+}
+
+export interface AdminMenuItem {
+  id: string;
+  restaurantId: string;
+  categoryId: string | null;
+  name: string;
+  description?: string | null;
+  priceCents: number;
+  isAvailable: boolean;
+  isSoldOutOverride: boolean;
+  isFeatured: boolean;
+  isActive: boolean;
+}
+
+export interface AdminMenuCategory {
+  id: string;
+  name: string;
+  displayOrder: number;
+  isActive: boolean;
+}
+
+export interface AdminMenuResponse {
+  categories: AdminMenuCategory[];
+  items: AdminMenuItem[];
+}
+
+export interface SalesSummary {
+  from: string;
+  to: string;
+  ordersCount: number;
+  grossRevenueCents: number;
+  refundedCents: number;
+  netRevenueCents: number;
+  averageOrderValueCents: number;
+  ordersByStatus: Record<string, number>;
+  revenueByDay: Array<{ date: string; orders: number; netRevenueCents: number }>;
+}
+
+export interface RestaurantLocationRef {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+}
+
+export interface RestaurantWithLocations extends RestaurantSummary {
+  locations: RestaurantLocationRef[];
+}
+
+export interface CloverSyncJob {
+  id: string;
+  type: string;
+  status: string;
+  startedAt: string;
+  finishedAt?: string | null;
+  errorSummary?: string | null;
+  itemsSynced: number;
+  itemsCreated: number;
+  itemsUpdated: number;
+  itemsSoftDeleted: number;
 }

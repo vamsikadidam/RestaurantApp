@@ -21,7 +21,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Restaurant App',
+              'IndiaGarden',
               style: theme.textTheme.headlineMedium?.copyWith(
                 color: theme.colorScheme.onPrimary,
               ),

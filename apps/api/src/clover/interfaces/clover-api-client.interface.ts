@@ -47,6 +47,47 @@ export interface CloverItemDto {
   taxRates?: CloverTaxRateDto[];
 }
 
+export interface CloverCreateOrderLineItemInput {
+  name: string;
+  priceCents: number;
+  quantity: number;
+  cloverItemId?: string;
+}
+
+export interface CloverCreateOrderInput {
+  lineItems: CloverCreateOrderLineItemInput[];
+  note?: string;
+}
+
+export interface CloverOrderDto {
+  id: string;
+  total: number;
+  state?: string;
+}
+
+export interface CloverChargeInput {
+  amountCents: number;
+  currency: string;
+  /** Single-use `clv_...` token produced by the Ecommerce tokenization
+   * endpoint - see PaymentsService. Never a raw card number. */
+  source: string;
+  clientIp?: string;
+  orderId?: string;
+  idempotencyKey?: string;
+}
+
+export interface CloverChargeResultDto {
+  id: string;
+  status: string;
+  amountCents: number;
+}
+
+export interface CloverRefundResultDto {
+  id: string;
+  status: string;
+  amountCents: number;
+}
+
 /**
  * Port for all Clover REST calls this app needs. Two adapters implement it:
  *  - CloverApiClientMock: deterministic in-memory data, used whenever real
@@ -61,4 +102,29 @@ export interface CloverApiClient {
   listCategories(merchantId: string, accessToken: string): Promise<CloverCategoryDto[]>;
   listModifierGroups(merchantId: string, accessToken: string): Promise<CloverModifierGroupDto[]>;
   listItems(merchantId: string, accessToken: string): Promise<CloverItemDto[]>;
+
+  /** Mirrors a locally-created order into Clover's Register/KDS via the
+   * Orders API so restaurant staff see it alongside in-person orders. */
+  createOrder(
+    merchantId: string,
+    accessToken: string,
+    input: CloverCreateOrderInput,
+  ): Promise<CloverOrderDto>;
+
+  /** Fetches (and caches upstream, per Clover's docs) the per-merchant
+   * Ecommerce API key used to *tokenize* cards. This key can only create
+   * single-use card tokens - it cannot charge anything - so it's safe to
+   * hand to the mobile client. See PaymentsService.getTokenizationConfig. */
+  getEcommerceApiAccessKey(merchantId: string, accessToken: string): Promise<string>;
+
+  /** Charges a previously-tokenized card via the Ecommerce Charges API.
+   * Never called with raw card data - `input.source` is always a `clv_...`
+   * token produced by the client directly against Clover's token host. */
+  createCharge(accessToken: string, input: CloverChargeInput): Promise<CloverChargeResultDto>;
+
+  createRefund(
+    accessToken: string,
+    chargeId: string,
+    amountCents?: number,
+  ): Promise<CloverRefundResultDto>;
 }

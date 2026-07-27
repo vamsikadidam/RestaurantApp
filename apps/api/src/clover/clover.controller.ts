@@ -51,6 +51,50 @@ export class CloverController {
     return res.redirect(url);
   }
 
+  @Roles(UserRoleType.RESTAURANT_ADMIN)
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Get('oauth/start-url')
+  @ApiOperation({
+    summary:
+      'Same as oauth/start but returns the Clover authorization URL as JSON instead of redirecting - needed by ' +
+      'JS clients (like the admin portal) that must call this endpoint with a Bearer token, which a plain ' +
+      'browser navigation/redirect cannot carry',
+  })
+  async oauthStartUrl(
+    @Query('restaurantLocationId') restaurantLocationId: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    if (!restaurantLocationId) {
+      throw new BadRequestException('restaurantLocationId is required');
+    }
+
+    const url = await this.cloverOAuthService.buildAuthorizationUrl({
+      restaurantLocationId,
+      connectedByUserId: req.user!.userId,
+    });
+
+    return { url };
+  }
+
+  @Roles(UserRoleType.RESTAURANT_ADMIN, UserRoleType.RESTAURANT_EMPLOYEE)
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Get('connection-status')
+  @ApiOperation({
+    summary: 'Whether a restaurant location currently has an active Clover connection',
+  })
+  getConnectionStatus(@Query('restaurantLocationId') restaurantLocationId: string) {
+    return this.cloverOAuthService.getConnectionStatus(restaurantLocationId);
+  }
+
+  @Roles(UserRoleType.RESTAURANT_ADMIN)
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Post('disconnect')
+  @ApiOperation({ summary: 'Disconnect a restaurant location from Clover (admin only)' })
+  async disconnect(@Body() dto: TriggerSyncDto, @Req() req: AuthenticatedRequest) {
+    await this.cloverOAuthService.disconnect(dto.restaurantLocationId, req.user!.userId);
+    return { disconnected: true };
+  }
+
   @Public()
   @Get('oauth/callback')
   @ApiOperation({ summary: 'Clover OAuth redirect target - completes the connection' })

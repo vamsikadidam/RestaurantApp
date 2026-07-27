@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateMenuItemDto } from './dto/update-menu-item.dto';
 
 const MODIFIER_GROUP_INCLUDE = {
   modifierGroups: {
@@ -83,6 +84,56 @@ export class MenuService {
     });
 
     return items.map((item) => this.toItemSummary(item));
+  }
+
+  /** Admin/employee menu view - includes inactive/sold-out items the public GET /menu hides. */
+  async listAdminMenuItems(restaurantId: string) {
+    const [categories, items] = await Promise.all([
+      this.prisma.menuCategory.findMany({
+        where: { restaurantId, deletedAt: null },
+        orderBy: { displayOrder: 'asc' },
+      }),
+      this.prisma.menuItem.findMany({
+        where: { restaurantId, deletedAt: null },
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+
+    return { categories, items };
+  }
+
+  async updateMenuItem(itemId: string, dto: UpdateMenuItemDto, actorUserId: string) {
+    const item = await this.prisma.menuItem.findFirst({
+      where: { id: itemId, restaurantId: dto.restaurantId, deletedAt: null },
+    });
+    if (!item) {
+      throw new NotFoundException('Menu item not found for this restaurant');
+    }
+
+    const updated = await this.prisma.menuItem.update({
+      where: { id: itemId },
+      data: {
+        priceCents: dto.priceCents,
+        description: dto.description,
+        isAvailable: dto.isAvailable,
+        isSoldOutOverride: dto.isSoldOutOverride,
+        isFeatured: dto.isFeatured,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId,
+        actorRole: 'RESTAURANT_ADMIN',
+        action: 'UPDATE_MENU_ITEM',
+        entityType: 'MenuItem',
+        entityId: itemId,
+        previousValue: JSON.parse(JSON.stringify(item)),
+        newValue: JSON.parse(JSON.stringify(updated)),
+      },
+    });
+
+    return this.toItemSummary(updated);
   }
 
   private toItemSummary(item: {

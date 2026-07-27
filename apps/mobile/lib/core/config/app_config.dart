@@ -19,5 +19,14 @@ class AppConfig {
     defaultValue: 'development',
   );
 
+  /// This app is built/published per restaurant (one branded app per
+  /// merchant), so the restaurant is a build-time constant rather than
+  /// something the customer picks in-app. Set via
+  /// `--dart-define=RESTAURANT_ID=...` per release flavor.
+  static const String restaurantId = String.fromEnvironment(
+    'RESTAURANT_ID',
+    defaultValue: 'demo-restaurant-id',
+  );
+
   static bool get isProduction => environmentName == 'production';
 }

@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { FulfillmentType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { resolveLocalTime } from '../common/utils/timezone.util';
+import { UpdateLocationSettingsDto } from './dto/update-location-settings.dto';
+import { UpdateHoursDto } from './dto/update-hours.dto';
 
 export interface AvailabilityResult {
   isOpenNow: boolean;
@@ -97,6 +99,99 @@ export class RestaurantsService {
     if (fulfillmentType === FulfillmentType.DELIVERY && !availability.deliveryAvailable) {
       throw new NotFoundException('Delivery is not available for this restaurant right now.');
     }
+  }
+
+  /** Admin/employee view of a location's settings, including hours - see Phase 6 admin portal. */
+  async getLocationSettings(restaurantId: string, locationId: string) {
+    const location = await this.prisma.restaurantLocation.findFirst({
+      where: { id: locationId, restaurantId, deletedAt: null },
+      include: { hours: { orderBy: { dayOfWeek: 'asc' } } },
+    });
+    if (!location) {
+      throw new NotFoundException('Restaurant location not found');
+    }
+    return location;
+  }
+
+  async updateLocationSettings(
+    restaurantId: string,
+    locationId: string,
+    dto: UpdateLocationSettingsDto,
+    actorUserId: string,
+  ) {
+    const location = await this.prisma.restaurantLocation.findFirst({
+      where: { id: locationId, restaurantId, deletedAt: null },
+    });
+    if (!location) {
+      throw new NotFoundException('Restaurant location not found');
+    }
+
+    const updated = await this.prisma.restaurantLocation.update({
+      where: { id: locationId },
+      data: dto,
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId,
+        actorRole: 'RESTAURANT_ADMIN',
+        action: 'UPDATE_LOCATION_SETTINGS',
+        entityType: 'RestaurantLocation',
+        entityId: locationId,
+        previousValue: JSON.parse(JSON.stringify(location)),
+        newValue: JSON.parse(JSON.stringify(updated)),
+      },
+    });
+
+    return updated;
+  }
+
+  async updateHours(
+    restaurantId: string,
+    locationId: string,
+    dto: UpdateHoursDto,
+    actorUserId: string,
+  ) {
+    const location = await this.prisma.restaurantLocation.findFirst({
+      where: { id: locationId, restaurantId, deletedAt: null },
+      include: { hours: true },
+    });
+    if (!location) {
+      throw new NotFoundException('Restaurant location not found');
+    }
+
+    const updatedHours = await this.prisma.$transaction(async (tx) => {
+      await tx.restaurantHours.deleteMany({ where: { restaurantLocationId: locationId } });
+      if (dto.hours.length > 0) {
+        await tx.restaurantHours.createMany({
+          data: dto.hours.map((h) => ({
+            restaurantLocationId: locationId,
+            dayOfWeek: h.dayOfWeek,
+            opensAtMinutes: h.opensAtMinutes,
+            closesAtMinutes: h.closesAtMinutes,
+            isClosed: h.isClosed,
+          })),
+        });
+      }
+      return tx.restaurantHours.findMany({
+        where: { restaurantLocationId: locationId },
+        orderBy: { dayOfWeek: 'asc' },
+      });
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId,
+        actorRole: 'RESTAURANT_ADMIN',
+        action: 'UPDATE_HOURS',
+        entityType: 'RestaurantLocation',
+        entityId: locationId,
+        previousValue: JSON.parse(JSON.stringify(location.hours)),
+        newValue: JSON.parse(JSON.stringify(updatedHours)),
+      },
+    });
+
+    return updatedHours;
   }
 
   private async resolveLocation(restaurantId: string, locationId?: string) {

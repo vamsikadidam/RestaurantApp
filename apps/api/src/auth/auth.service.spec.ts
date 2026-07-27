@@ -11,6 +11,8 @@ describe('AuthService', () => {
     user: { findUnique: jest.Mock; create: jest.Mock; update: jest.Mock };
     passwordResetToken: { create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
     emailVerificationToken: { create: jest.Mock };
+    refreshToken: { updateMany: jest.Mock };
+    deviceToken: { deleteMany: jest.Mock };
     $transaction: jest.Mock;
   };
   let passwordService: { hash: jest.Mock; verify: jest.Mock };
@@ -32,6 +34,8 @@ describe('AuthService', () => {
       user: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
       passwordResetToken: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
       emailVerificationToken: { create: jest.fn() },
+      refreshToken: { updateMany: jest.fn() },
+      deviceToken: { deleteMany: jest.fn() },
       $transaction: jest.fn((ops) => Promise.all(ops)),
     };
     passwordService = { hash: jest.fn(), verify: jest.fn() };
@@ -191,6 +195,54 @@ describe('AuthService', () => {
 
       expect(prisma.$transaction).toHaveBeenCalled();
       expect(tokenService.revokeAllRefreshTokensForUser).toHaveBeenCalledWith('user-1');
+    });
+  });
+
+  describe('requestAccountDeletion', () => {
+    it('rejects an unknown email with a generic error', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      await expect(
+        authService.requestAccountDeletion({ email: 'nobody@example.com', password: 'whatever' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('rejects an incorrect password', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        passwordHash: 'hash',
+        deletedAt: null,
+      });
+      passwordService.verify.mockResolvedValue(false);
+
+      await expect(
+        authService.requestAccountDeletion({ email: 'user@example.com', password: 'wrong' }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    });
+
+    it('anonymizes the account and revokes sessions on success', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        passwordHash: 'hash',
+        deletedAt: null,
+      });
+      passwordService.verify.mockResolvedValue(true);
+
+      await authService.requestAccountDeletion({ email: 'user@example.com', password: 'correct' });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-1' },
+          data: expect.objectContaining({
+            email: null,
+            passwordHash: null,
+            deletedAt: expect.any(Date),
+          }),
+        }),
+      );
+      expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: 'user-1', revokedAt: null } }),
+      );
+      expect(prisma.deviceToken.deleteMany).toHaveBeenCalledWith({ where: { userId: 'user-1' } });
     });
   });
 });

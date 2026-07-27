@@ -14,6 +14,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AccountDeletionDto } from './dto/account-deletion.dto';
 import { AuthResult, AuthTokens } from './interfaces/auth-result.interface';
 
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -151,6 +152,54 @@ export class AuthService {
 
     // Resetting a password invalidates every existing session.
     await this.tokenService.revokeAllRefreshTokensForUser(resetToken.userId);
+  }
+
+  /**
+   * Self-service "right to be forgotten" flow (see legal/account-deletion-policy.md
+   * and GOOGLE_PLAY_RELEASE_GUIDE.md - Play requires this to also work from a
+   * page outside the app, which is why this takes a password instead of
+   * requiring a JWT session). Anonymizes identity fields immediately rather
+   * than hard-deleting the row, since Order/Payment/Refund records must be
+   * retained for financial/tax record-keeping - see DATA_RETENTION policy.
+   */
+  async requestAccountDeletion(dto: AccountDeletionDto): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+
+    // Same constant-shape response whether or not the account exists/matches,
+    // to avoid leaking account existence.
+    if (!user || !user.passwordHash || user.deletedAt) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const passwordMatches = await this.passwordService.verify(user.passwordHash, dto.password);
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          email: null,
+          passwordHash: null,
+          firstName: null,
+          lastName: null,
+          phone: null,
+          googleId: null,
+          notificationPrefs: undefined,
+          deletionRequestedAt: now,
+          deletedAt: now,
+        },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: now },
+      }),
+      this.prisma.deviceToken.deleteMany({ where: { userId: user.id } }),
+    ]);
+
+    this.logger.log(`Account ${user.id} anonymized following a self-service deletion request`);
   }
 
   private async issueEmailVerificationToken(userId: string, email: string): Promise<void> {

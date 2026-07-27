@@ -1,7 +1,15 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { UserRoleType } from '@prisma/client';
 import { Public } from '../common/decorators/public.decorator';
+import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { RestaurantScopeGuard } from '../common/guards/restaurant-scope.guard';
+import { RequestUser } from '../common/types/authenticated-request';
 import { RestaurantsService } from './restaurants.service';
+import { UpdateLocationSettingsDto } from './dto/update-location-settings.dto';
+import { UpdateHoursDto } from './dto/update-hours.dto';
 
 @ApiTags('restaurants')
 @Controller('restaurants')
@@ -30,5 +38,49 @@ export class RestaurantsController {
     @Query('locationId') locationId?: string,
   ) {
     return this.restaurantsService.getAvailability(restaurantId, locationId);
+  }
+
+  @Get(':restaurantId/locations/:locationId/settings')
+  @ApiOperation({
+    summary: 'Get business settings (fees, delivery radius, hours) for a location - admin/employee',
+  })
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Roles(UserRoleType.RESTAURANT_ADMIN, UserRoleType.RESTAURANT_EMPLOYEE)
+  getLocationSettings(
+    @Param('restaurantId') restaurantId: string,
+    @Param('locationId') locationId: string,
+  ) {
+    return this.restaurantsService.getLocationSettings(restaurantId, locationId);
+  }
+
+  @Patch(':restaurantId/locations/:locationId/settings')
+  @ApiOperation({ summary: 'Update business settings for a location (admin only)' })
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Roles(UserRoleType.RESTAURANT_ADMIN)
+  updateLocationSettings(
+    @Param('restaurantId') restaurantId: string,
+    @Param('locationId') locationId: string,
+    @Body() dto: UpdateLocationSettingsDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.restaurantsService.updateLocationSettings(
+      restaurantId,
+      locationId,
+      dto,
+      user.userId,
+    );
+  }
+
+  @Put(':restaurantId/locations/:locationId/hours')
+  @ApiOperation({ summary: 'Replace the posted weekly hours for a location (admin only)' })
+  @UseGuards(RolesGuard, RestaurantScopeGuard)
+  @Roles(UserRoleType.RESTAURANT_ADMIN)
+  updateHours(
+    @Param('restaurantId') restaurantId: string,
+    @Param('locationId') locationId: string,
+    @Body() dto: UpdateHoursDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.restaurantsService.updateHours(restaurantId, locationId, dto, user.userId);
   }
 }

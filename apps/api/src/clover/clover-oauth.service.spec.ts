@@ -18,6 +18,10 @@ describe('CloverOAuthService', () => {
       listCategories: jest.fn(),
       listModifierGroups: jest.fn(),
       listItems: jest.fn(),
+      createOrder: jest.fn(),
+      getEcommerceApiAccessKey: jest.fn(),
+      createCharge: jest.fn(),
+      createRefund: jest.fn(),
     };
     configService = {
       get: jest.fn((key: string) => {
@@ -36,6 +40,7 @@ describe('CloverOAuthService', () => {
         update: jest.fn(),
         updateMany: jest.fn(),
       },
+      auditLog: { create: jest.fn() },
     };
     redis = { setJson: jest.fn(), getJson: jest.fn(), del: jest.fn() };
     encryptionService = {
@@ -176,6 +181,51 @@ describe('CloverOAuthService', () => {
 
       await expect(service.getValidAccessToken('loc-1')).rejects.toBeInstanceOf(
         BadRequestException,
+      );
+    });
+  });
+
+  describe('getConnectionStatus', () => {
+    it('reports not connected when there is no connection row', async () => {
+      prisma.cloverConnection.findUnique.mockResolvedValue(null);
+      const result = await service.getConnectionStatus('loc-1');
+      expect(result).toEqual({ connected: false });
+    });
+
+    it('reports not connected when the connection was disconnected', async () => {
+      prisma.cloverConnection.findUnique.mockResolvedValue({
+        status: CloverConnectionStatus.DISCONNECTED,
+        cloverMerchantId: 'M1',
+      });
+      const result = await service.getConnectionStatus('loc-1');
+      expect(result).toEqual({ connected: false });
+    });
+
+    it('reports connected with merchant id when active', async () => {
+      const connectedAt = new Date();
+      prisma.cloverConnection.findUnique.mockResolvedValue({
+        status: CloverConnectionStatus.ACTIVE,
+        cloverMerchantId: 'M1',
+        connectedAt,
+        lastSyncAt: null,
+      });
+      const result = await service.getConnectionStatus('loc-1');
+      expect(result).toEqual({ connected: true, merchantId: 'M1', connectedAt, lastSyncAt: null });
+    });
+  });
+
+  describe('disconnect', () => {
+    it('marks the connection disconnected and writes an audit log entry', async () => {
+      await service.disconnect('loc-1', 'user-1');
+
+      expect(prisma.cloverConnection.updateMany).toHaveBeenCalledWith({
+        where: { restaurantLocationId: 'loc-1' },
+        data: expect.objectContaining({ status: CloverConnectionStatus.DISCONNECTED }),
+      });
+      expect(prisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ actorUserId: 'user-1', action: 'CLOVER_DISCONNECT' }),
+        }),
       );
     });
   });

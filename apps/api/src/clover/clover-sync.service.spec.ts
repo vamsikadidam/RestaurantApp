@@ -32,6 +32,10 @@ describe('CloverSyncService', () => {
       listCategories: jest.fn().mockResolvedValue([]),
       listModifierGroups: jest.fn().mockResolvedValue([]),
       listItems: jest.fn().mockResolvedValue([]),
+      createOrder: jest.fn(),
+      getEcommerceApiAccessKey: jest.fn(),
+      createCharge: jest.fn(),
+      createRefund: jest.fn(),
     };
 
     cloverOAuthService = {

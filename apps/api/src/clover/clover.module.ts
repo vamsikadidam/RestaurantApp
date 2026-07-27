@@ -26,6 +26,6 @@ import { CLOVER_API_CLIENT } from './interfaces/clover-api-client.interface';
     CloverOAuthService,
     CloverSyncService,
   ],
-  exports: [CloverOAuthService, CloverSyncService],
+  exports: [CloverOAuthService, CloverSyncService, CLOVER_API_CLIENT],
 })
 export class CloverModule {}

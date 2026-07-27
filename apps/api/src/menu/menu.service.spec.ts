@@ -6,13 +6,15 @@ describe('MenuService', () => {
   let service: MenuService;
   let prisma: {
     menuCategory: { findMany: jest.Mock };
-    menuItem: { findFirst: jest.Mock; findMany: jest.Mock };
+    menuItem: { findFirst: jest.Mock; findMany: jest.Mock; update: jest.Mock };
+    auditLog: { create: jest.Mock };
   };
 
   beforeEach(() => {
     prisma = {
       menuCategory: { findMany: jest.fn() },
-      menuItem: { findFirst: jest.fn(), findMany: jest.fn() },
+      menuItem: { findFirst: jest.fn(), findMany: jest.fn(), update: jest.fn() },
+      auditLog: { create: jest.fn() },
     };
     service = new MenuService(prisma as unknown as PrismaService);
   });
@@ -112,6 +114,59 @@ describe('MenuService', () => {
       const results = await service.search('rest-1', '   ');
       expect(results).toEqual([]);
       expect(prisma.menuItem.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateMenuItem', () => {
+    const existingItem = {
+      id: 'item-1',
+      restaurantId: 'rest-1',
+      categoryId: 'cat-1',
+      name: 'Cheeseburger',
+      description: null,
+      priceCents: 999,
+      imageUrl: null,
+      cloverImageUrl: null,
+      isAvailable: true,
+      isSoldOutOverride: false,
+      isFeatured: false,
+    };
+
+    it('throws NotFoundException when the item does not belong to the given restaurant', async () => {
+      prisma.menuItem.findFirst.mockResolvedValue(null);
+      await expect(
+        service.updateMenuItem(
+          'item-1',
+          { restaurantId: 'rest-1', isSoldOutOverride: true },
+          'user-1',
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('applies the update, never writes restaurantId as a field, and audit-logs the change', async () => {
+      prisma.menuItem.findFirst.mockResolvedValue(existingItem);
+      prisma.menuItem.update.mockResolvedValue({ ...existingItem, isSoldOutOverride: true });
+
+      const result = await service.updateMenuItem(
+        'item-1',
+        { restaurantId: 'rest-1', isSoldOutOverride: true },
+        'user-1',
+      );
+
+      expect(prisma.menuItem.update).toHaveBeenCalledWith({
+        where: { id: 'item-1' },
+        data: { isSoldOutOverride: true },
+      });
+      expect(result.isAvailable).toBe(false);
+      expect(prisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            actorUserId: 'user-1',
+            action: 'UPDATE_MENU_ITEM',
+            entityId: 'item-1',
+          }),
+        }),
+      );
     });
   });
 });

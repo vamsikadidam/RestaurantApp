@@ -17,7 +17,7 @@
     "api:lint": "npm run lint --workspace=apps/api",
     "admin:dev": "npm run dev --workspace=apps/admin-web",
     "admin:build": "npm run build --workspace=apps/admin-web",
-    "build:packages": "npm run build --workspace=packages/shared-types",
+    "build:packages": "npm run build --workspace=packages/shared-types && npm run build --workspace=packages/api-client",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "prisma:generate": "npm run prisma:generate --workspace=apps/api",

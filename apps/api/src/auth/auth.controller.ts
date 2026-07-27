@@ -1,14 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { Public } from '../common/decorators/public.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { RequestUser } from '../common/types/authenticated-request';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AccountDeletionDto } from './dto/account-deletion.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -71,6 +74,28 @@ export class AuthController {
   @ApiOperation({ summary: 'Reset a password using a valid reset token' })
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
     await this.authService.resetPassword(dto);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('account-deletion')
+  @ApiOperation({
+    summary:
+      "Self-service account deletion request (works without an active session - required by Google Play's " +
+      'account-deletion requirements). Anonymizes the account; order/payment history is retained for financial ' +
+      'record-keeping - see legal/account-deletion-policy.md and legal/data-retention-policy.md.',
+  })
+  async requestAccountDeletion(@Body() dto: AccountDeletionDto): Promise<void> {
+    await this.authService.requestAccountDeletion(dto);
+  }
+
+  @Get('me')
+  @ApiOperation({
+    summary: 'Get the current user identity and roles (from the access token, no DB round-trip)',
+  })
+  me(@CurrentUser() user: RequestUser) {
+    return user;
   }
 
   private contextFrom(req: Request) {

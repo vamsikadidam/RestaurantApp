@@ -92,14 +92,6 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  CLOVER_ECOMMERCE_PUBLIC_KEY?: string;
-
-  @IsString()
-  @IsOptional()
-  CLOVER_ECOMMERCE_PRIVATE_KEY?: string;
-
-  @IsString()
-  @IsOptional()
   CLOVER_API_BASE_URL?: string;
 
   @IsString()

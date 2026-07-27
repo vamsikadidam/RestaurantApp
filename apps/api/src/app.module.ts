@@ -21,6 +21,13 @@ import { AuthModule } from './auth/auth.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { MenuModule } from './menu/menu.module';
 import { CloverModule } from './clover/clover.module';
+import { CartModule } from './cart/cart.module';
+import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
+import { RefundsModule } from './refunds/refunds.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { WebhooksModule } from './webhooks/webhooks.module';
+import { ReportsModule } from './reports/reports.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingRedactionInterceptor } from './common/interceptors/logging-redaction.interceptor';
@@ -57,6 +64,13 @@ import { LoggingRedactionInterceptor } from './common/interceptors/logging-redac
     RestaurantsModule,
     MenuModule,
     CloverModule,
+    CartModule,
+    OrdersModule,
+    PaymentsModule,
+    RefundsModule,
+    NotificationsModule,
+    WebhooksModule,
+    ReportsModule,
   ],
   providers: [
     // Order matters: JwtAuthGuard populates request.user before RolesGuard

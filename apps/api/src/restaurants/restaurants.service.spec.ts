@@ -6,8 +6,10 @@ describe('RestaurantsService', () => {
   let service: RestaurantsService;
   let prisma: {
     restaurant: { findFirst: jest.Mock };
-    restaurantLocation: { findFirst: jest.Mock };
-    restaurantHours: { findMany: jest.Mock };
+    restaurantLocation: { findFirst: jest.Mock; update: jest.Mock };
+    restaurantHours: { findMany: jest.Mock; deleteMany: jest.Mock; createMany: jest.Mock };
+    auditLog: { create: jest.Mock };
+    $transaction: jest.Mock;
   };
 
   const baseLocation = {
@@ -23,8 +25,10 @@ describe('RestaurantsService', () => {
   beforeEach(() => {
     prisma = {
       restaurant: { findFirst: jest.fn() },
-      restaurantLocation: { findFirst: jest.fn() },
-      restaurantHours: { findMany: jest.fn() },
+      restaurantLocation: { findFirst: jest.fn(), update: jest.fn() },
+      restaurantHours: { findMany: jest.fn(), deleteMany: jest.fn(), createMany: jest.fn() },
+      auditLog: { create: jest.fn() },
+      $transaction: jest.fn((cb) => cb(prisma)),
     };
     service = new RestaurantsService(prisma as unknown as PrismaService);
   });
@@ -86,6 +90,72 @@ describe('RestaurantsService', () => {
     it('throws NotFoundException when the location cannot be resolved', async () => {
       prisma.restaurantLocation.findFirst.mockResolvedValue(null);
       await expect(service.getAvailability('rest-1')).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('updateLocationSettings', () => {
+    it('throws NotFoundException for a location outside the given restaurant', async () => {
+      prisma.restaurantLocation.findFirst.mockResolvedValue(null);
+      await expect(
+        service.updateLocationSettings('rest-1', 'loc-1', { deliveryFeeCents: 500 }, 'user-1'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('updates the location and writes an audit log entry', async () => {
+      prisma.restaurantLocation.findFirst.mockResolvedValue(baseLocation);
+      prisma.restaurantLocation.update.mockResolvedValue({
+        ...baseLocation,
+        deliveryFeeCents: 500,
+      });
+
+      const result = await service.updateLocationSettings(
+        'rest-1',
+        'loc-1',
+        { deliveryFeeCents: 500 },
+        'user-1',
+      );
+
+      expect(result.deliveryFeeCents).toBe(500);
+      expect(prisma.restaurantLocation.update).toHaveBeenCalledWith({
+        where: { id: 'loc-1' },
+        data: { deliveryFeeCents: 500 },
+      });
+      expect(prisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            actorUserId: 'user-1',
+            action: 'UPDATE_LOCATION_SETTINGS',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('updateHours', () => {
+    it('throws NotFoundException for a location outside the given restaurant', async () => {
+      prisma.restaurantLocation.findFirst.mockResolvedValue(null);
+      await expect(
+        service.updateHours('rest-1', 'loc-1', { hours: [] }, 'user-1'),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('replaces the week and writes an audit log entry', async () => {
+      prisma.restaurantLocation.findFirst.mockResolvedValue({ ...baseLocation, hours: [] });
+      const newHours = [
+        { dayOfWeek: 1, opensAtMinutes: 540, closesAtMinutes: 1320, isClosed: false },
+      ];
+      prisma.restaurantHours.findMany.mockResolvedValue(newHours);
+
+      const result = await service.updateHours('rest-1', 'loc-1', { hours: newHours }, 'user-1');
+
+      expect(prisma.restaurantHours.deleteMany).toHaveBeenCalledWith({
+        where: { restaurantLocationId: 'loc-1' },
+      });
+      expect(prisma.restaurantHours.createMany).toHaveBeenCalled();
+      expect(result).toEqual(newHours);
+      expect(prisma.auditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining({ action: 'UPDATE_HOURS' }) }),
+      );
     });
   });
 });

@@ -5,9 +5,14 @@ import { AxiosError } from 'axios';
 import {
   CloverApiClient,
   CloverCategoryDto,
+  CloverChargeInput,
+  CloverChargeResultDto,
+  CloverCreateOrderInput,
   CloverItemDto,
   CloverModifierGroupDto,
   CloverOAuthTokenResult,
+  CloverOrderDto,
+  CloverRefundResultDto,
 } from './interfaces/clover-api-client.interface';
 
 const PAGE_LIMIT = 1000; // Clover's documented maximum page size for v3 list endpoints.
@@ -128,6 +133,129 @@ export class CloverApiClientHttp implements CloverApiClient {
         rate: t.rate ?? 0,
       })),
     }));
+  }
+
+  /**
+   * Orders API - creates a Clover order and its line items so restaurant
+   * staff see online orders alongside in-person ones on the Register/KDS.
+   * Verified against docs.clover.com/dev/docs/managing-orders and
+   * docs.clover.com/dev/reference/createorder /
+   * docs.clover.com/dev/reference/createlineitem (v3, one line-item POST
+   * per item; re-verify field names before go-live).
+   */
+  async createOrder(
+    merchantId: string,
+    accessToken: string,
+    input: CloverCreateOrderInput,
+  ): Promise<CloverOrderDto> {
+    const apiBaseUrl = this.configService.get<string>('clover.apiBaseUrl');
+    const orderResponse = await this.request(() =>
+      this.httpService.axiosRef.post(
+        `${apiBaseUrl}/v3/merchants/${merchantId}/orders`,
+        { note: input.note },
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      ),
+    );
+
+    const orderId = orderResponse.data.id;
+
+    for (const lineItem of input.lineItems) {
+      await this.request(() =>
+        this.httpService.axiosRef.post(
+          `${apiBaseUrl}/v3/merchants/${merchantId}/orders/${orderId}/line_items`,
+          {
+            name: lineItem.name,
+            price: lineItem.priceCents,
+            unitQty: lineItem.quantity * 1000, // Clover represents unitQty in thousandths.
+            item: lineItem.cloverItemId ? { id: lineItem.cloverItemId } : undefined,
+          },
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        ),
+      );
+    }
+
+    return { id: orderId, total: orderResponse.data.total ?? 0, state: orderResponse.data.state };
+  }
+
+  /**
+   * PAKMS ("Public Access Key Management Service") - returns the static,
+   * non-secret per-merchant key that the *mobile app* uses to tokenize
+   * cards directly against the Ecommerce token host (never through our
+   * server). Verified against
+   * docs.clover.com/dev/docs/ecommerce-api-payments-flow, step "Generate an
+   * Ecommerce API key": GET {apiBaseUrl}/v3/merchants/{mId}/pakms/apikey.
+   */
+  async getEcommerceApiAccessKey(merchantId: string, accessToken: string): Promise<string> {
+    const apiBaseUrl = this.configService.get<string>('clover.apiBaseUrl');
+    const response = await this.request(() =>
+      this.httpService.axiosRef.get(`${apiBaseUrl}/v3/merchants/${merchantId}/pakms/apikey`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }),
+    );
+    return response.data.apiAccessKey;
+  }
+
+  /**
+   * Ecommerce Charges API - charges a single-use `clv_...` card token.
+   * Verified against docs.clover.com/dev/reference/createcharge and
+   * docs.clover.com/dev/docs/ecommerce-api-payments-flow.
+   * POST {ecommerceBaseUrl}/v1/charges
+   */
+  async createCharge(
+    accessToken: string,
+    input: CloverChargeInput,
+  ): Promise<CloverChargeResultDto> {
+    const ecommerceBaseUrl = this.configService.get<string>('clover.ecommerceBaseUrl');
+    const response = await this.request(() =>
+      this.httpService.axiosRef.post(
+        `${ecommerceBaseUrl}/v1/charges`,
+        {
+          amount: input.amountCents,
+          currency: input.currency.toLowerCase(),
+          source: input.source,
+          ecomind: 'ecom',
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'x-forwarded-for': input.clientIp ?? '0.0.0.0',
+            ...(input.idempotencyKey ? { 'Idempotency-Key': input.idempotencyKey } : {}),
+          },
+        },
+      ),
+    );
+
+    return {
+      id: response.data.id,
+      status: response.data.status,
+      amountCents: response.data.amount ?? input.amountCents,
+    };
+  }
+
+  /**
+   * Ecommerce Refunds API. Verified against
+   * docs.clover.com/dev/docs/ecommerce-api-tutorials ("Refunds").
+   * POST {ecommerceBaseUrl}/v1/charges/{chargeId}/refunds
+   */
+  async createRefund(
+    accessToken: string,
+    chargeId: string,
+    amountCents?: number,
+  ): Promise<CloverRefundResultDto> {
+    const ecommerceBaseUrl = this.configService.get<string>('clover.ecommerceBaseUrl');
+    const response = await this.request(() =>
+      this.httpService.axiosRef.post(
+        `${ecommerceBaseUrl}/v1/charges/${chargeId}/refunds`,
+        amountCents ? { amount: amountCents } : {},
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      ),
+    );
+
+    return {
+      id: response.data.id,
+      status: response.data.status,
+      amountCents: response.data.amount ?? amountCents ?? 0,
+    };
   }
 
   private async paginate(

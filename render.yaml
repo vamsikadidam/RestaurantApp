@@ -1,0 +1,121 @@
+# Render Blueprint for the backend API (apps/api) + its Postgres and Redis
+# (Key Value) datastores. Deploy with: Render Dashboard -> New -> Blueprint ->
+# point at this repo. See DEPLOYMENT.md for the full walkthrough, including
+# which values you still need to fill in from the Render Dashboard after the
+# first deploy (marked `sync: false` below - Render will prompt for these).
+#
+# The admin portal (apps/admin-web) is NOT included here - it's deployed
+# separately to Vercel (see apps/admin-web/vercel.json and DEPLOYMENT.md),
+# since Vercel is the more natural fit for a Next.js app.
+
+databases:
+  - name: restaurant-postgres
+    databaseName: restaurant_platform
+    plan: basic-256mb # Cheapest paid tier; swap for a Render "free" Postgres in the Dashboard if available in your region/account
+    postgresMajorVersion: '16'
+
+services:
+  - type: keyvalue
+    name: restaurant-redis
+    plan: free
+    ipAllowList: [] # Internal-only - only this Render account's services can reach it
+    maxmemoryPolicy: allkeys-lru
+
+  - type: web
+    name: restaurant-api
+    runtime: docker
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    # The Dockerfile's default (last) build stage is `production` - no
+    # explicit target is needed since Render builds the final stage by
+    # default, same as a plain `docker build .` would.
+    plan: starter
+    healthCheckPath: /api/v1/health
+    # Runs after each successful image build, before the new instance starts.
+    # Applies pending Prisma migrations against the linked Postgres database.
+    preDeployCommand: npx prisma migrate deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_GLOBAL_PREFIX
+        value: api
+      # Render injects PORT automatically for web services - the app already
+      # reads process.env.PORT (see apps/api/src/config/configuration.ts).
+
+      # Set this to your real backend URL once you know it (Render gives you
+      # https://restaurant-api.onrender.com by default, or your custom
+      # domain if you add one) - needed because it's also used to build the
+      # Clover OAuth redirect URI below.
+      - key: APP_BASE_URL
+        fromService:
+          type: web
+          name: restaurant-api
+          envVarKey: RENDER_EXTERNAL_URL
+
+      # Add your deployed admin portal's origin(s) here (comma-separated, no
+      # trailing slash), e.g. https://your-admin.vercel.app - required for
+      # the admin portal to be able to call this API from the browser.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: restaurant-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: restaurant-redis
+          property: connectionString
+
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TOKEN_TTL
+        value: 15m
+      - key: JWT_REFRESH_TOKEN_TTL
+        value: 30d
+      - key: TOKEN_ENCRYPTION_KEY
+        generateValue: true
+
+      # --- Clover: fill in via the Render Dashboard once you have real
+      # credentials (CLOVER_SETUP_GUIDE.md). Left unset / sandbox by default
+      # so the service boots successfully with the mock Clover adapter. ---
+      - key: CLOVER_ENVIRONMENT
+        value: sandbox
+      - key: CLOVER_CLIENT_ID
+        sync: false
+      - key: CLOVER_CLIENT_SECRET
+        sync: false
+      - key: CLOVER_MERCHANT_ID
+        sync: false
+      # Set to `${APP_BASE_URL}/api/v1/integrations/clover/oauth/callback`
+      # once APP_BASE_URL above resolves to your real backend URL.
+      - key: CLOVER_REDIRECT_URI
+        sync: false
+      - key: CLOVER_WEBHOOK_SECRET
+        sync: false
+      - key: CLOVER_ECOMMERCE_PUBLIC_KEY
+        sync: false
+      - key: CLOVER_ECOMMERCE_PRIVATE_KEY
+        sync: false
+      - key: CLOVER_USE_MOCK_CLIENT
+        value: 'true'
+
+      # --- Firebase Admin SDK (push notifications) - fill in via Dashboard ---
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+
+      - key: DEFAULT_CURRENCY
+        value: USD
+      - key: DEFAULT_COUNTRY
+        value: US
+      - key: DEFAULT_PREP_TIME_MINUTES
+        value: '25'
+      - key: GUEST_CHECKOUT_ENABLED
+        value: 'true'

@@ -2,9 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   CloverApiClient,
   CloverCategoryDto,
+  CloverChargeInput,
+  CloverChargeResultDto,
+  CloverCreateOrderInput,
   CloverItemDto,
   CloverModifierGroupDto,
   CloverOAuthTokenResult,
+  CloverOrderDto,
+  CloverRefundResultDto,
 } from './interfaces/clover-api-client.interface';
 
 /**
@@ -91,5 +96,49 @@ export class CloverApiClientMock implements CloverApiClient {
 
   async listItems(_merchantId: string, _accessToken: string): Promise<CloverItemDto[]> {
     return this.items;
+  }
+
+  async createOrder(
+    _merchantId: string,
+    _accessToken: string,
+    input: CloverCreateOrderInput,
+  ): Promise<CloverOrderDto> {
+    const total = input.lineItems.reduce((sum, li) => sum + li.priceCents * li.quantity, 0);
+    const id = `MOCK_ORDER_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+    this.logger.debug(`[mock] created Clover order ${id} for ${total} cents`);
+    return { id, total, state: 'open' };
+  }
+
+  async getEcommerceApiAccessKey(_merchantId: string, _accessToken: string): Promise<string> {
+    return 'MOCK_ECOMMERCE_API_ACCESS_KEY';
+  }
+
+  /**
+   * Deterministic outcomes for automated tests / local dev: a source token
+   * containing "decline" simulates a declined card so error-handling paths
+   * (payment failed screens, order status) can be exercised without a real
+   * sandbox merchant.
+   */
+  async createCharge(
+    _accessToken: string,
+    input: CloverChargeInput,
+  ): Promise<CloverChargeResultDto> {
+    const id = `MOCK_CHARGE_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+    if (input.source.toLowerCase().includes('decline')) {
+      this.logger.debug(`[mock] simulating declined charge ${id}`);
+      return { id, status: 'failed', amountCents: input.amountCents };
+    }
+    this.logger.debug(`[mock] charged ${input.amountCents} cents -> ${id}`);
+    return { id, status: 'succeeded', amountCents: input.amountCents };
+  }
+
+  async createRefund(
+    _accessToken: string,
+    chargeId: string,
+    amountCents?: number,
+  ): Promise<CloverRefundResultDto> {
+    const id = `MOCK_REFUND_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`;
+    this.logger.debug(`[mock] refunded charge ${chargeId} (${amountCents ?? 'full'}) -> ${id}`);
+    return { id, status: 'succeeded', amountCents: amountCents ?? 0 };
   }
 }

@@ -172,10 +172,43 @@ export class CloverOAuthService {
     return { accessToken: refreshed.accessToken, merchantId: connection.cloverMerchantId };
   }
 
-  async disconnect(restaurantLocationId: string): Promise<void> {
+  async disconnect(restaurantLocationId: string, actorUserId?: string): Promise<void> {
     await this.prisma.cloverConnection.updateMany({
       where: { restaurantLocationId },
       data: { status: CloverConnectionStatus.DISCONNECTED, disconnectedAt: new Date() },
     });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorUserId,
+        actorRole: 'RESTAURANT_ADMIN',
+        action: 'CLOVER_DISCONNECT',
+        entityType: 'CloverConnection',
+        entityId: restaurantLocationId,
+      },
+    });
+  }
+
+  /** Admin portal (Phase 6) connection badge - never exposes tokens, just presence/state. */
+  async getConnectionStatus(restaurantLocationId: string): Promise<{
+    connected: boolean;
+    merchantId?: string;
+    connectedAt?: Date;
+    lastSyncAt?: Date | null;
+  }> {
+    const connection = await this.prisma.cloverConnection.findUnique({
+      where: { restaurantLocationId },
+    });
+
+    if (!connection || connection.status !== CloverConnectionStatus.ACTIVE) {
+      return { connected: false };
+    }
+
+    return {
+      connected: true,
+      merchantId: connection.cloverMerchantId,
+      connectedAt: connection.connectedAt,
+      lastSyncAt: connection.lastSyncAt,
+    };
   }
 }

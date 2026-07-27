@@ -6,7 +6,10 @@ linter:
     prefer_const_literals_to_create_immutables: true
     avoid_print: true
     always_declare_return_types: true
-    require_trailing_commas: true
+    # Deliberately not enabling require_trailing_commas: it fights with
+    # `dart format`, which only adds trailing commas to calls it splits
+    # across multiple lines - enabling it flags every single-line multi-arg
+    # call as an issue.
 
 analyzer:
   exclude:
