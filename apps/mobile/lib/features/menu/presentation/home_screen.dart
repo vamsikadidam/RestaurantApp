@@ -106,6 +106,17 @@ class _HomeBody extends ConsumerWidget {
               height: 160,
               width: double.infinity,
               fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
+                height: 160,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              // Some scraped/legacy restaurant site photos fail to decode in
+              // the browser (e.g. unsupported JPEG variant) - never let a
+              // broken banner show a raw error overlay to customers.
+              errorWidget: (context, url, error) => Container(
+                height: 160,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
             ),
           ),
         SliverToBoxAdapter(

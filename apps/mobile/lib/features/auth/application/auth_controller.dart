@@ -37,18 +37,33 @@ class AuthController extends StateNotifier<AuthState> {
     _restoreSession();
   }
 
+  /// Reads persisted tokens with a hard timeout and never leaves the app
+  /// stuck on the splash screen: any read failure (e.g. a secure-storage
+  /// backend that hangs, or a cached value written by an incompatible
+  /// earlier app version) falls back to a clean unauthenticated state
+  /// instead of leaving [state] as `AuthState.loading()` forever.
   Future<void> _restoreSession() async {
-    final accessToken = await _tokenStorage.readAccessToken();
-    final cachedUser = await _tokenStorage.readCachedUser();
+    try {
+      final accessToken = await _tokenStorage
+          .readAccessToken()
+          .timeout(const Duration(seconds: 5));
+      final cachedUser = await _tokenStorage
+          .readCachedUser()
+          .timeout(const Duration(seconds: 5));
 
-    if (accessToken == null || cachedUser == null) {
+      if (accessToken == null || cachedUser == null) {
+        state = const AuthState.unauthenticated();
+        return;
+      }
+
+      final user = AuthUser.fromJson(cachedUser);
+      state = user.isGuest
+          ? AuthState.guest(user)
+          : AuthState.authenticated(user);
+    } catch (_) {
+      await _tokenStorage.clear().catchError((_) {});
       state = const AuthState.unauthenticated();
-      return;
     }
-
-    final user = AuthUser.fromJson(cachedUser);
-    state =
-        user.isGuest ? AuthState.guest(user) : AuthState.authenticated(user);
   }
 
   Future<void> register({

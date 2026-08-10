@@ -181,6 +181,16 @@ class _ItemDetailBodyState extends ConsumerState<_ItemDetailBody> {
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 200,
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      height: 200,
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: const Icon(Icons.image_not_supported_outlined,
+                          size: 48),
+                    ),
                   ),
                 ),
               const SizedBox(height: 16),
