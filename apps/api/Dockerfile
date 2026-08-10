@@ -39,4 +39,6 @@ COPY --from=build /app/apps/api/prisma ./apps/api/prisma
 COPY --from=build /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
 WORKDIR /app/apps/api
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+# Belt-and-suspenders with render.yaml preDeployCommand: always apply
+# pending migrations before serving traffic.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]

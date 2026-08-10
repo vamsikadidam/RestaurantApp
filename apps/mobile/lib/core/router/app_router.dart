@@ -8,6 +8,9 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/cart/presentation/cart_screen.dart';
+import '../../features/checkout/data/models/checkout_models.dart';
+import '../../features/checkout/presentation/checkout_screen.dart';
+import '../../features/checkout/presentation/order_confirmation_screen.dart';
 import '../../features/menu/presentation/home_screen.dart';
 import '../../features/menu/presentation/item_detail_screen.dart';
 import '../../features/menu/presentation/search_screen.dart';
@@ -15,8 +18,7 @@ import '../../features/splash/presentation/splash_screen.dart';
 import 'router_refresh_notifier.dart';
 
 /// Route paths are centralized here so screens never hardcode navigation
-/// strings. Account/order-history/checkout routes (screens beyond browse +
-/// cart + auth) are added in later phases.
+/// strings.
 abstract class AppRoutes {
   static const splash = '/';
   static const welcome = '/welcome';
@@ -25,10 +27,14 @@ abstract class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const home = '/home';
   static const cart = '/cart';
+  static const checkout = '/checkout';
   static const search = '/search';
   static const itemDetail = '/item/:itemId';
+  static const orderConfirmation = '/orders/:orderId/confirmation';
 
   static String itemDetailPath(String itemId) => '/item/$itemId';
+  static String orderConfirmationPath(String orderId) =>
+      '/orders/$orderId/confirmation';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -61,6 +67,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }.contains(location);
       if (isAuthEntryRoute && authState.status != AuthStatus.unauthenticated) {
         return AppRoutes.home;
+      }
+
+      // Checkout requires a session (customer or guest).
+      if (location == AppRoutes.checkout &&
+          authState.status == AuthStatus.unauthenticated) {
+        return AppRoutes.welcome;
       }
 
       return null;
@@ -100,6 +112,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.cart,
         name: 'cart',
         builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.checkout,
+        name: 'checkout',
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.orderConfirmation,
+        name: 'orderConfirmation',
+        builder: (context, state) {
+          final order = state.extra;
+          if (order is OrderSummary) {
+            return OrderConfirmationScreen(order: order);
+          }
+          // Deep-link / refresh fallback when extra is missing.
+          return OrderConfirmationScreen(
+            order: OrderSummary(
+              id: state.pathParameters['orderId'] ?? 'unknown',
+              publicOrderNumber: state.pathParameters['orderId'] ?? 'unknown',
+              status: 'PAID',
+              totalCents: 0,
+              currency: 'USD',
+              tipCents: 0,
+              taxCents: 0,
+              subtotalCents: 0,
+              serviceFeeCents: 0,
+              deliveryFeeCents: 0,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.search,

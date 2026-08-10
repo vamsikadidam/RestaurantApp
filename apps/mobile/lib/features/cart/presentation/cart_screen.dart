@@ -109,12 +109,7 @@ class CartScreen extends ConsumerWidget {
       context.push(AppRoutes.welcome);
       return;
     }
-    // Authoritative checkout (backend pricing, Clover order sync, payment) is
-    // implemented in Phase 4 - this app can already build a valid cart and
-    // sign the customer in ahead of that.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Checkout is coming soon!')),
-    );
+    context.push(AppRoutes.checkout);
   }
 }
 

@@ -117,14 +117,31 @@ Console steps.
 ## 4. Checklist before calling this "live"
 
 - [ ] Render API health endpoint returns OK
-- [ ] Prisma migrations applied (`preDeployCommand` succeeded)
-- [ ] Seed data / first restaurant admin exists
+- [ ] Prisma migrations applied (`preDeployCommand` / Docker start succeeded)
+- [ ] Seed data / first restaurant admin exists (`admin@indiagardenscv.test` / `ChangeMe123!`)
 - [ ] Vercel admin portal loads and can log in
 - [ ] `CORS_ALLOWED_ORIGINS` includes the Vercel URL
 - [ ] Privacy policy + account deletion URLs publicly reachable (for Play Console)
 - [ ] Clover sandbox or production credentials configured when you leave mock mode
 - [ ] Firebase project + `google-services.json` for `com.indiagarden.app`
 - [ ] Mobile release `.aab` built with production `--dart-define` values
+
+## 5. What you must do in the dashboards (no CLIs on this machine)
+
+Cloud deploy cannot be finished from this repo alone — create free accounts and
+click through once:
+
+1. **Render** → New → Blueprint → select `vamsikadidam/RestaurantApp` → Apply
+   (`render.yaml`). Set `CORS_ALLOWED_ORIGINS=*` temporarily, then tighten after
+   Vercel.
+2. **Vercel** → Import same repo → Root Directory `apps/admin-web` → set
+   `NEXT_PUBLIC_API_BASE_URL` to the Render URL (no `/api/v1`).
+3. Seed prod DB (Render shell or local `DATABASE_URL=... npx prisma db seed`).
+4. Firebase + Play Console per `apps/mobile/FIREBASE_SETUP.md` and
+   `GOOGLE_PLAY_RELEASE_GUIDE.md`.
+
+Keep `apps/mobile/android/upload-keystore.jks` and `key.properties` backed up
+offline — they are gitignored and cannot be recovered from GitHub.
 
 ## Cost notes (approximate, subject to change)
 

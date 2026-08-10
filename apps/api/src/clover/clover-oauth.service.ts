@@ -129,6 +129,18 @@ export class CloverOAuthService {
     accessToken: string;
     merchantId: string;
   }> {
+    // When the mock Clover client is active, payments/sync must work without a
+    // real OAuth connection so local + Render sandbox deploys can take orders.
+    if (this.configService.get<boolean>('clover.useMockClient')) {
+      this.logger.debug(
+        `Using mock Clover tokens for location ${restaurantLocationId} (CLOVER_USE_MOCK_CLIENT)`,
+      );
+      return {
+        accessToken: 'MOCK_CLOVER_ACCESS_TOKEN',
+        merchantId: 'MOCK_MERCHANT_ID',
+      };
+    }
+
     const connection = await this.prisma.cloverConnection.findUnique({
       where: { restaurantLocationId },
     });

@@ -130,6 +130,20 @@ describe('CloverOAuthService', () => {
   });
 
   describe('getValidAccessToken', () => {
+    it('returns mock tokens when CLOVER_USE_MOCK_CLIENT is enabled', async () => {
+      configService.get.mockImplementation((key: string) =>
+        key === 'clover.useMockClient' ? true : undefined,
+      );
+
+      const result = await service.getValidAccessToken('loc-1');
+
+      expect(result).toEqual({
+        accessToken: 'MOCK_CLOVER_ACCESS_TOKEN',
+        merchantId: 'MOCK_MERCHANT_ID',
+      });
+      expect(prisma.cloverConnection.findUnique).not.toHaveBeenCalled();
+    });
+
     it('throws NotFoundException when there is no active connection', async () => {
       prisma.cloverConnection.findUnique.mockResolvedValue(null);
       await expect(service.getValidAccessToken('loc-1')).rejects.toBeInstanceOf(NotFoundException);
