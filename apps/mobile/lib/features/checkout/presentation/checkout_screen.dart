@@ -26,11 +26,13 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _notesController = TextEditingController();
+  final _customTipController = TextEditingController();
   ServerCart? _serverCart;
   Object? _loadError;
   bool _loadingCart = true;
   bool _submitting = false;
   int _selectedTipBasisPoints = 1500;
+  bool _isCustomTip = false;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void dispose() {
     _notesController.dispose();
+    _customTipController.dispose();
     super.dispose();
   }
 
@@ -96,6 +99,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return ((cart.pricing.subtotalCents * tipBasisPoints) / 10000).round();
   }
 
+  /// Current tip amount: either a % of subtotal (preset chips) or a
+  /// customer-typed dollar amount (custom chip), including $0 for no tip.
+  int _currentTipCents(ServerCart cart) {
+    if (_isCustomTip) {
+      final dollars = double.tryParse(_customTipController.text.trim());
+      if (dollars == null || dollars <= 0) return 0;
+      return (dollars * 100).round();
+    }
+    return _tipCentsFor(cart, _selectedTipBasisPoints);
+  }
+
   String _idempotencyKey(String prefix) {
     final stamp = DateTime.now().microsecondsSinceEpoch;
     final nonce = Random().nextInt(1 << 30);
@@ -111,7 +125,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final repo = ref.read(checkoutRepositoryProvider);
 
     try {
-      final tipCents = _tipCentsFor(cart, _selectedTipBasisPoints);
+      final tipCents = _currentTipCents(cart);
       final order = await repo.checkout(
         cartId: cart.id,
         idempotencyKey: _idempotencyKey('checkout'),
@@ -179,13 +193,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   int _totalWithTip(ServerCart cart) {
-    final tipCents = _tipCentsFor(cart, _selectedTipBasisPoints);
+    final tipCents = _currentTipCents(cart);
     return cart.pricing.totalCents - cart.pricing.tipCents + tipCents;
   }
 
   Widget _buildBody(BuildContext context, MoneyFormatter money) {
     final cart = _serverCart!;
-    final tipCents = _tipCentsFor(cart, _selectedTipBasisPoints);
+    final tipCents = _currentTipCents(cart);
     final totalWithTip = _totalWithTip(cart);
     final tipOptions = cart.tipPresetsBasisPoints.isNotEmpty
         ? cart.tipPresetsBasisPoints
@@ -214,15 +228,39 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
+          runSpacing: 8,
           children: [
             for (final bp in tipOptions)
               ChoiceChip(
                 label: Text(bp == 0 ? 'No tip' : '${(bp / 100).round()}%'),
-                selected: _selectedTipBasisPoints == bp,
-                onSelected: (_) => setState(() => _selectedTipBasisPoints = bp),
+                selected: !_isCustomTip && _selectedTipBasisPoints == bp,
+                onSelected: (_) => setState(() {
+                  _isCustomTip = false;
+                  _selectedTipBasisPoints = bp;
+                }),
               ),
+            ChoiceChip(
+              label: const Text('Custom'),
+              selected: _isCustomTip,
+              onSelected: (_) => setState(() => _isCustomTip = true),
+            ),
           ],
         ),
+        if (_isCustomTip) ...[
+          const SizedBox(height: 12),
+          TextField(
+            controller: _customTipController,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Custom tip amount',
+              hintText: 'Enter 0 for no tip',
+              prefixText: '\$ ',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
         const SizedBox(height: 20),
         TextField(
           controller: _notesController,
