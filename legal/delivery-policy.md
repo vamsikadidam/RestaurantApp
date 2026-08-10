@@ -3,7 +3,7 @@
 > **TEMPLATE - requires legal review and operational sign-off before publishing.**
 > See `legal/README.md`.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
 ## 1. Delivery area
 
@@ -42,10 +42,10 @@ delivery driver may need to reach you if there's an issue locating you.
 
 - If a delivery cannot be completed because no one is available to receive it at the
   provided address, and it isn't safe/appropriate to leave unattended, contact
-  [SUPPORT_EMAIL] as soon as possible. Refund eligibility for failed deliveries is
+  +1 (661) 200-3055 (confirm dedicated support email before launch) as soon as possible. Refund eligibility for failed deliveries is
   covered by `refund-cancellation-policy.md`.
 - If your order is significantly delayed beyond the estimated time, check your order
-  status in-app first; contact [SUPPORT_EMAIL] if you have concerns.
+  status in-app first; contact +1 (661) 200-3055 (confirm dedicated support email before launch) if you have concerns.
 
 ## 7. Order accuracy at delivery
 
@@ -54,5 +54,5 @@ Please check your order upon receipt. Report any missing or incorrect items per
 
 ## 8. Contact us
 
-[COMPANY_LEGAL_NAME]
-[SUPPORT_EMAIL]
+India Garden Restaurant
++1 (661) 200-3055 (confirm dedicated support email before launch)

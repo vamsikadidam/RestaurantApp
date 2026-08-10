@@ -2,9 +2,9 @@
 
 > **TEMPLATE - requires legal review before publishing.** See `legal/README.md`.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
-[COMPANY_LEGAL_NAME] ("we", "us", "our") operates the [APP_NAME] mobile app and website
+India Garden Restaurant ("we", "us", "our") operates the India Garden mobile app and website
 (together, the "Service"), which lets you browse a restaurant's menu and order food for
 pickup or delivery. This Privacy Policy explains what personal data we collect, why, how
 long we keep it, and the choices you have.
@@ -18,7 +18,7 @@ long we keep it, and the choices you have.
 - **Delivery addresses**: saved addresses, delivery instructions.
 - **Order data**: items ordered, modifiers/customizations, special instructions, order
   totals, tips.
-- **Support communications**: anything you send us directly (e.g. via [SUPPORT_EMAIL]).
+- **Support communications**: anything you send us directly (e.g. via +1 (661) 200-3055 (confirm dedicated support email before launch)).
 
 ### Collected automatically
 
@@ -71,14 +71,14 @@ purposes without your explicit consent.
 
 - **Access/correction**: you can view and edit most of your profile data in-app.
 - **Deletion**: you can request account deletion at any time, in-app or via
-  [ACCOUNT_DELETION_URL] (no login session required - only your email and password to
+  the Account Deletion page on the deployed admin portal (/account-deletion) (no login session required - only your email and password to
   confirm identity). See `account-deletion-policy.md` for exactly what is and isn't
   deleted.
 - **Notification preferences**: push notifications can be disabled in your device
   settings or in-app notification preferences at any time.
 - **Regional rights** (GDPR/CCPA/etc., as applicable to you): right to access, correct,
   delete, or port your data, and to object to or restrict certain processing. Contact
-  [PRIVACY_CONTACT_EMAIL] to exercise these rights. [JURISDICTION_SPECIFIC_RIGHTS_TEXT]
+  +1 (661) 200-3055 (confirm privacy contact email before launch) to exercise these rights. [JURISDICTION_SPECIFIC_RIGHTS_TEXT]
 
 ## 5. Data retention
 
@@ -96,9 +96,8 @@ technical detail. No system is 100% secure, and we cannot guarantee absolute sec
 
 ## 7. Children's privacy
 
-The Service is not directed at children under [MINIMUM_AGE, e.g. 13 or 16 depending on
-jurisdiction], and we do not knowingly collect personal data from them. If you believe a
-child has provided us data, contact [PRIVACY_CONTACT_EMAIL] and we will delete it.
+The Service is not directed at children under 13, and we do not knowingly collect personal data from them. If you believe a
+child has provided us data, contact +1 (661) 200-3055 (confirm privacy contact email before launch) and we will delete it.
 
 ## 8. International data transfers
 
@@ -113,6 +112,6 @@ in-app or by email before they take effect.
 
 ## 10. Contact us
 
-[COMPANY_LEGAL_NAME]
-[COMPANY_ADDRESS]
-[PRIVACY_CONTACT_EMAIL]
+India Garden Restaurant
+24341 Magic Mountain Pkwy, Santa Clarita, CA 91355, USA
++1 (661) 200-3055 (confirm privacy contact email before launch)

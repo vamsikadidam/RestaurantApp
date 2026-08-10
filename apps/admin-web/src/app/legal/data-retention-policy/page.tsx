@@ -61,10 +61,10 @@ const ROWS: Array<[string, string, string, string]> = [
 
 export default function DataRetentionPolicyPage() {
   return (
-    <LegalPage title="Data Retention Policy" lastUpdated="[DATE]">
+    <LegalPage title="Data Retention Policy" lastUpdated="August 10, 2026">
       <LegalSection heading="1. Purpose">
         <p>
-          This policy defines how long each category of data collected by [APP_NAME] is retained, and why, so that
+          This policy defines how long each category of data collected by India Garden is retained, and why, so that
           we keep data only as long as we have a legitimate business or legal reason to, deletion requests are
           honored consistently, and we can demonstrate compliance with applicable law.
         </p>
@@ -121,7 +121,7 @@ export default function DataRetentionPolicyPage() {
       </LegalSection>
 
       <LegalSection heading="6. Contact us">
-        <p>[PRIVACY_CONTACT_EMAIL]</p>
+        <p>+1 (661) 200-3055</p>
       </LegalSection>
     </LegalPage>
   );

@@ -4,7 +4,7 @@ export const metadata = { title: 'Refund & Cancellation Policy' };
 
 export default function RefundPolicyPage() {
   return (
-    <LegalPage title="Refund & Cancellation Policy" lastUpdated="[DATE]">
+    <LegalPage title="Refund & Cancellation Policy" lastUpdated="August 10, 2026">
       <LegalSection heading="1. Order cancellation by you">
         <ul>
           <li>
@@ -15,7 +15,7 @@ export default function RefundPolicyPage() {
           </li>
           <li>
             To cancel an eligible order, use the &ldquo;Cancel order&rdquo; option in-app, or contact
-            [SUPPORT_EMAIL] immediately.
+            +1 (661) 200-3055 immediately.
           </li>
         </ul>
       </LegalSection>
@@ -30,8 +30,8 @@ export default function RefundPolicyPage() {
 
       <LegalSection heading="3. Issues with a delivered/picked-up order">
         <p>
-          If your order arrives incorrect, incomplete, or of unacceptable quality, contact [SUPPORT_EMAIL] within
-          [TIME_WINDOW, e.g. 24 hours] of receiving it, with details (and photos, if applicable). Depending on the
+          If your order arrives incorrect, incomplete, or of unacceptable quality, contact +1 (661) 200-3055 within
+          24 hours of receiving it, with details (and photos, if applicable). Depending on the
           issue, we or the restaurant may offer a full or partial refund for the affected item(s), a credit toward a
           future order, or a replacement item on a future order.
         </p>
@@ -47,7 +47,7 @@ export default function RefundPolicyPage() {
           <li>Refunds can be full or partial (e.g. refunding just one item&apos;s cost rather than the whole order).</li>
           <li>
             Processing time back to your card/bank is determined by Clover and your card issuer, typically
-            [ESTIMATED_REFUND_WINDOW, e.g. 5-10 business days].
+            5-10 business days.
           </li>
           <li>You&apos;ll see the refund reflected in your order history in-app once it&apos;s issued.</li>
         </ul>
@@ -70,7 +70,7 @@ export default function RefundPolicyPage() {
 
       <LegalSection heading="7. Disputes / chargebacks">
         <p>
-          If you believe a charge was made in error, please contact us at [SUPPORT_EMAIL] before initiating a
+          If you believe a charge was made in error, please contact us at +1 (661) 200-3055 before initiating a
           chargeback with your bank. Chargebacks filed without first contacting us, where found to be without
           merit, may result in account suspension per our Terms & Conditions.
         </p>
@@ -78,9 +78,9 @@ export default function RefundPolicyPage() {
 
       <LegalSection heading="8. Contact us">
         <p>
-          [COMPANY_LEGAL_NAME]
+          India Garden Restaurant
           <br />
-          [SUPPORT_EMAIL]
+          +1 (661) 200-3055
         </p>
       </LegalSection>
     </LegalPage>

@@ -47,8 +47,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               Icon(Icons.restaurant_menu,
                   size: 64, color: theme.colorScheme.primary),
               const SizedBox(height: 16),
-              Text('Welcome', style: theme.textTheme.headlineMedium),
-              const SizedBox(height: 8),
+              Text('India Garden', style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 4),
+              Text(
+                'Santa Clarita · South Indian & Indian cuisine',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 'Sign in for a faster checkout and order history, or continue as a guest.',
                 textAlign: TextAlign.center,

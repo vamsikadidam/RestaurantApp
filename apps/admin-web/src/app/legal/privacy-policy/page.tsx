@@ -4,9 +4,9 @@ export const metadata = { title: 'Privacy Policy' };
 
 export default function PrivacyPolicyPage() {
   return (
-    <LegalPage title="Privacy Policy" lastUpdated="[DATE]">
+    <LegalPage title="Privacy Policy" lastUpdated="August 10, 2026">
       <p>
-        [COMPANY_LEGAL_NAME] (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) operates the [APP_NAME] mobile
+        India Garden Restaurant (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) operates the India Garden mobile
         app and website (together, the &ldquo;Service&rdquo;), which lets you browse a restaurant&apos;s menu and
         order food for pickup or delivery. This Privacy Policy explains what personal data we collect, why, how long
         we keep it, and the choices you have.
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <strong>Regional rights</strong> (GDPR/CCPA/etc., as applicable): right to access, correct, delete, or
-            port your data, and to object to or restrict certain processing. Contact [PRIVACY_CONTACT_EMAIL] to
+            port your data, and to object to or restrict certain processing. Contact +1 (661) 200-3055 to
             exercise these rights.
           </li>
         </ul>
@@ -118,8 +118,8 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection heading="7. Children's privacy">
         <p>
-          The Service is not directed at children under [MINIMUM_AGE], and we do not knowingly collect personal data
-          from them. If you believe a child has provided us data, contact [PRIVACY_CONTACT_EMAIL] and we will delete
+          The Service is not directed at children under 13, and we do not knowingly collect personal data
+          from them. If you believe a child has provided us data, contact +1 (661) 200-3055 and we will delete
           it.
         </p>
       </LegalSection>
@@ -141,11 +141,11 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection heading="10. Contact us">
         <p>
-          [COMPANY_LEGAL_NAME]
+          India Garden Restaurant
           <br />
-          [COMPANY_ADDRESS]
+          24341 Magic Mountain Pkwy, Santa Clarita, CA 91355, USA
           <br />
-          [PRIVACY_CONTACT_EMAIL]
+          +1 (661) 200-3055
         </p>
       </LegalSection>
     </LegalPage>

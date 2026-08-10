@@ -114,6 +114,7 @@ class CartController extends StateNotifier<CartState> {
     return true;
   }
 
+  // Use 1<<30 (not 1<<32): on Flutter Web, 1<<32 becomes 0 and Random.nextInt throws.
   String _generateLineId() =>
-      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
+      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 30)}';
 }

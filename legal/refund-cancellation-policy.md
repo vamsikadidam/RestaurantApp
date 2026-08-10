@@ -4,7 +4,7 @@
 > distance-selling rules for prepared-food delivery vary significantly by jurisdiction -
 > confirm minimum required refund rights where you operate. See `legal/README.md`.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
 ## 1. Order cancellation by you
 
@@ -13,7 +13,7 @@
   **Accepted**). Once a restaurant accepts and begins preparing your order, it generally
   cannot be cancelled, because the restaurant has already committed food and labor cost.
 - To cancel an eligible order, use the "Cancel order" option in-app, or contact
-  [SUPPORT_EMAIL] immediately.
+  +1 (661) 200-3055 (confirm dedicated support email before launch) immediately.
 - [ADD ANY JURISDICTION-REQUIRED COOLING-OFF PERIOD LANGUAGE, IF APPLICABLE TO PREPARED
   FOOD IN YOUR REGION - many consumer "right of withdrawal" laws explicitly exempt
   perishable/prepared food, but confirm.]
@@ -27,7 +27,7 @@ automatically to your original payment method. No action is needed on your part.
 ## 3. Issues with a delivered/picked-up order
 
 If your order arrives incorrect, incomplete, or of unacceptable quality, contact
-[SUPPORT_EMAIL] (or use in-app support, once built) within [TIME_WINDOW, e.g. 24 hours]
++1 (661) 200-3055 (confirm dedicated support email before launch) (or use in-app support, once built) within 24 hours
 of receiving it, with details (and photos, if applicable). Depending on the issue, we or
 the restaurant may offer:
 
@@ -46,7 +46,7 @@ staff or platform support staff, based on the evidence provided.
 - Refunds can be full or partial (e.g. refunding just one item's cost rather than the
   whole order).
 - Processing time back to your card/bank is determined by Clover and your card issuer,
-  typically [ESTIMATED_REFUND_WINDOW, e.g. 5-10 business days] - not something we
+  typically 5-10 business days - not something we
   control directly.
 - You'll see the refund reflected in your order history in-app once it's issued.
 
@@ -65,12 +65,12 @@ performed" OR "refunded proportionally" - decide and document].
 
 ## 7. Disputes / chargebacks
 
-If you believe a charge was made in error, please contact us at [SUPPORT_EMAIL] before
+If you believe a charge was made in error, please contact us at +1 (661) 200-3055 (confirm dedicated support email before launch) before
 initiating a chargeback with your bank - we can typically resolve billing issues faster
 directly. Chargebacks filed without first contacting us, where found to be without
 merit, may result in account suspension per our Terms & Conditions.
 
 ## 8. Contact us
 
-[COMPANY_LEGAL_NAME]
-[SUPPORT_EMAIL]
+India Garden Restaurant
++1 (661) 200-3055 (confirm dedicated support email before launch)

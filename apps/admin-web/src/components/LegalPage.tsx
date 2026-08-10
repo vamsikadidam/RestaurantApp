@@ -18,9 +18,9 @@ export function LegalPage({
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '40px 24px 80px' }}>
       <div className="alert alert-error" style={{ marginBottom: 24 }}>
-        <strong>Template - not final legal text.</strong> This document requires review by
-        a qualified lawyer before publishing. Every <code>[BRACKETED]</code> value must be
-        filled in first. See <code>legal/README.md</code> in the repository.
+        <strong>Requires legal review before treating as final.</strong> Contact details and
+        jurisdiction-specific clauses for India Garden Restaurant (Santa Clarita) should be
+        confirmed by a qualified lawyer. See <code>legal/README.md</code>.
       </div>
       <h1 style={{ marginBottom: 4 }}>{title}</h1>
       <p className="muted" style={{ marginTop: 0 }}>

@@ -5,11 +5,11 @@
 > operating jurisdiction(s). See `legal/README.md`. This is primarily an internal/
 > compliance document, referenced from `privacy-policy.md`.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
 ## 1. Purpose
 
-This policy defines how long each category of data collected by [APP_NAME] is retained,
+This policy defines how long each category of data collected by India Garden is retained,
 and why, so that:
 
 - We keep data only as long as we have a legitimate business or legal reason to.
@@ -58,4 +58,4 @@ the table in §2 accurate.
 
 ## 6. Contact us
 
-[PRIVACY_CONTACT_EMAIL]
++1 (661) 200-3055 (confirm privacy contact email before launch)

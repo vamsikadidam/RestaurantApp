@@ -2,10 +2,10 @@
 
 > **TEMPLATE - requires legal review before publishing.** See `legal/README.md`.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
-These Terms & Conditions ("Terms") govern your use of the [APP_NAME] app and website
-(the "Service"), operated by [COMPANY_LEGAL_NAME] ("we", "us"). By creating an account
+These Terms & Conditions ("Terms") govern your use of the India Garden app and website
+(the "Service"), operated by India Garden Restaurant ("we", "us"). By creating an account
 or placing an order, you agree to these Terms.
 
 ## 1. The Service
@@ -22,7 +22,7 @@ preparing your food safely and to the standard advertised.
 - You may also check out as a guest for a single order without creating a permanent
   account.
 - You are responsible for all activity under your account. Notify us immediately at
-  [SUPPORT_EMAIL] of any unauthorized use.
+  +1 (661) 200-3055 (confirm dedicated support email before launch) of any unauthorized use.
 - We may suspend or terminate accounts that violate these Terms, engage in fraud, or
   abuse the Service (e.g. placing orders with no intent to pay, repeated chargebacks
   without cause, abusive behavior toward restaurant staff).
@@ -71,7 +71,7 @@ You agree not to:
 ## 8. Intellectual property
 
 The Service, including its software, design, and content (excluding restaurant-supplied
-menu content and imagery), is owned by [COMPANY_LEGAL_NAME] or its licensors and
+menu content and imagery), is owned by India Garden Restaurant or its licensors and
 protected by intellectual property law. You may not copy, modify, or redistribute it
 except as the Service itself allows (e.g. normal use of the app).
 
@@ -92,13 +92,13 @@ PROTECTION CARVE-OUTS THAT CANNOT BE DISCLAIMED.]
 
 ## 11. Limitation of liability
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, [COMPANY_LEGAL_NAME]'S TOTAL LIABILITY FOR ANY
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, India Garden Restaurant'S TOTAL LIABILITY FOR ANY
 CLAIM ARISING FROM YOUR USE OF THE SERVICE IS LIMITED TO THE AMOUNT YOU PAID FOR THE
 ORDER(S) GIVING RISE TO THE CLAIM. [ADD JURISDICTION-SPECIFIC LIMITS/CARVE-OUTS.]
 
 ## 12. Governing law & disputes
 
-These Terms are governed by the laws of [GOVERNING_LAW_JURISDICTION], without regard to
+These Terms are governed by the laws of State of California, United States, without regard to
 conflict-of-laws principles. [ADD DISPUTE RESOLUTION / ARBITRATION / VENUE CLAUSE AS
 APPROPRIATE FOR YOUR JURISDICTION AND BUSINESS MODEL.]
 
@@ -110,6 +110,6 @@ notified in-app or by email.
 
 ## 14. Contact us
 
-[COMPANY_LEGAL_NAME]
-[COMPANY_ADDRESS]
-[SUPPORT_EMAIL]
+India Garden Restaurant
+24341 Magic Mountain Pkwy, Santa Clarita, CA 91355, USA
++1 (661) 200-3055 (confirm dedicated support email before launch)

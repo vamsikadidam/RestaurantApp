@@ -4,10 +4,10 @@ export const metadata = { title: 'Terms & Conditions' };
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms & Conditions" lastUpdated="[DATE]">
+    <LegalPage title="Terms & Conditions" lastUpdated="August 10, 2026">
       <p>
-        These Terms & Conditions (&ldquo;Terms&rdquo;) govern your use of the [APP_NAME] app and website (the
-        &ldquo;Service&rdquo;), operated by [COMPANY_LEGAL_NAME] (&ldquo;we&rdquo;, &ldquo;us&rdquo;). By creating an
+        These Terms & Conditions (&ldquo;Terms&rdquo;) govern your use of the India Garden app and website (the
+        &ldquo;Service&rdquo;), operated by India Garden Restaurant (&ldquo;we&rdquo;, &ldquo;us&rdquo;). By creating an
         account or placing an order, you agree to these Terms.
       </p>
 
@@ -25,7 +25,7 @@ export default function TermsPage() {
           <li>You must provide accurate information when creating an account, and keep your credentials confidential.</li>
           <li>You may also check out as a guest for a single order without creating a permanent account.</li>
           <li>
-            You are responsible for all activity under your account. Notify us immediately at [SUPPORT_EMAIL] of any
+            You are responsible for all activity under your account. Notify us immediately at +1 (661) 200-3055 of any
             unauthorized use.
           </li>
           <li>
@@ -89,7 +89,7 @@ export default function TermsPage() {
       <LegalSection heading="8. Intellectual property">
         <p>
           The Service, including its software, design, and content (excluding restaurant-supplied menu content and
-          imagery), is owned by [COMPANY_LEGAL_NAME] or its licensors and protected by intellectual property law.
+          imagery), is owned by India Garden Restaurant or its licensors and protected by intellectual property law.
         </p>
       </LegalSection>
 
@@ -113,7 +113,7 @@ export default function TermsPage() {
 
       <LegalSection heading="11. Limitation of liability">
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, [COMPANY_LEGAL_NAME]&apos;S TOTAL LIABILITY FOR ANY CLAIM ARISING
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, India Garden Restaurant&apos;S TOTAL LIABILITY FOR ANY CLAIM ARISING
           FROM YOUR USE OF THE SERVICE IS LIMITED TO THE AMOUNT YOU PAID FOR THE ORDER(S) GIVING RISE TO THE CLAIM.
           [ADD JURISDICTION-SPECIFIC LIMITS/CARVE-OUTS.]
         </p>
@@ -121,7 +121,7 @@ export default function TermsPage() {
 
       <LegalSection heading="12. Governing law & disputes">
         <p>
-          These Terms are governed by the laws of [GOVERNING_LAW_JURISDICTION], without regard to conflict-of-laws
+          These Terms are governed by the laws of State of California, United States, without regard to conflict-of-laws
           principles. [ADD DISPUTE RESOLUTION / ARBITRATION / VENUE CLAUSE AS APPROPRIATE.]
         </p>
       </LegalSection>
@@ -135,11 +135,11 @@ export default function TermsPage() {
 
       <LegalSection heading="14. Contact us">
         <p>
-          [COMPANY_LEGAL_NAME]
+          India Garden Restaurant
           <br />
-          [COMPANY_ADDRESS]
+          24341 Magic Mountain Pkwy, Santa Clarita, CA 91355, USA
           <br />
-          [SUPPORT_EMAIL]
+          +1 (661) 200-3055
         </p>
       </LegalSection>
     </LegalPage>

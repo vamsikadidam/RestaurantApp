@@ -4,7 +4,7 @@ export const metadata = { title: 'Account Deletion Policy' };
 
 export default function AccountDeletionPolicyPage() {
   return (
-    <LegalPage title="Account Deletion Policy" lastUpdated="[DATE]">
+    <LegalPage title="Account Deletion Policy" lastUpdated="August 10, 2026">
       <LegalSection heading="1. How to request deletion">
         <p>You can request deletion of your account in either of these ways, without needing an active app session:</p>
         <ul>
@@ -71,14 +71,14 @@ export default function AccountDeletionPolicyPage() {
       <LegalSection heading="5. Restaurant-side records">
         <p>
           Restaurants using this platform may keep their own records of past orders outside of our systems. This
-          policy governs data held by [COMPANY_LEGAL_NAME] only.
+          policy governs data held by India Garden Restaurant only.
         </p>
       </LegalSection>
 
       <LegalSection heading="6. Contact us">
         <p>
           If you have questions about account deletion, or believe your data was not properly deleted, contact
-          [PRIVACY_CONTACT_EMAIL].
+          +1 (661) 200-3055.
         </p>
       </LegalSection>
     </LegalPage>

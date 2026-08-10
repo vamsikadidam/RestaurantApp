@@ -4,7 +4,7 @@
 > document should match the actual implementation in
 > `apps/api/src/auth/auth.service.ts` (`requestAccountDeletion`) - update both together.
 
-**Last updated:** [DATE]
+**Last updated:** August 10, 2026
 
 ## 1. How to request deletion
 
@@ -12,7 +12,7 @@ You can request deletion of your account in either of these ways, without needin
 active app session:
 
 - **In-app**: Account settings → Delete account (once built in the mobile app).
-- **On the web, without the app**: [ACCOUNT_DELETION_URL] - enter the email and password
+- **On the web, without the app**: the Account Deletion page on the deployed admin portal (/account-deletion) - enter the email and password
   for the account you want deleted. This satisfies Google Play's requirement that
   account deletion be requestable from outside the app.
 
@@ -65,9 +65,9 @@ Contact those providers directly if you have concerns about their independent re
 
 Restaurants using this platform may keep their own records of past orders (e.g. for
 their own accounting) outside of our systems. This policy governs data held by
-[COMPANY_LEGAL_NAME] only.
+India Garden Restaurant only.
 
 ## 6. Contact us
 
 If you have questions about account deletion, or believe your data was not properly
-deleted, contact [PRIVACY_CONTACT_EMAIL].
+deleted, contact +1 (661) 200-3055 (confirm privacy contact email before launch).

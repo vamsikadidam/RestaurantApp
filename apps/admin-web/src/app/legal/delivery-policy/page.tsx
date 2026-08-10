@@ -4,7 +4,7 @@ export const metadata = { title: 'Delivery Policy' };
 
 export default function DeliveryPolicyPage() {
   return (
-    <LegalPage title="Delivery Policy" lastUpdated="[DATE]">
+    <LegalPage title="Delivery Policy" lastUpdated="August 10, 2026">
       <LegalSection heading="1. Delivery area">
         <p>
           Each restaurant location sets its own delivery radius. At checkout, the app tells you whether delivery is
@@ -54,12 +54,12 @@ export default function DeliveryPolicyPage() {
         <ul>
           <li>
             If a delivery cannot be completed because no one is available to receive it, and it isn&apos;t safe/
-            appropriate to leave unattended, contact [SUPPORT_EMAIL] as soon as possible. Refund eligibility is
+            appropriate to leave unattended, contact +1 (661) 200-3055 as soon as possible. Refund eligibility is
             covered by our <a href="/legal/refund-cancellation-policy">Refund & Cancellation Policy</a>.
           </li>
           <li>
             If your order is significantly delayed beyond the estimated time, check your order status in-app first;
-            contact [SUPPORT_EMAIL] if you have concerns.
+            contact +1 (661) 200-3055 if you have concerns.
           </li>
         </ul>
       </LegalSection>
@@ -73,9 +73,9 @@ export default function DeliveryPolicyPage() {
 
       <LegalSection heading="8. Contact us">
         <p>
-          [COMPANY_LEGAL_NAME]
+          India Garden Restaurant
           <br />
-          [SUPPORT_EMAIL]
+          +1 (661) 200-3055
         </p>
       </LegalSection>
     </LegalPage>

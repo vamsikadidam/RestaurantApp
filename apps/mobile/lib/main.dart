@@ -19,11 +19,12 @@ class RestaurantApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'IndiaGarden',
+      title: 'India Garden',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      // Brand site is dark-first; keep light available via system override.
+      themeMode: ThemeMode.dark,
       routerConfig: router,
     );
   }

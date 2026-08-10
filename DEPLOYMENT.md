@@ -1,7 +1,12 @@
-# Deployment guide (Render + Vercel)
+# Deployment guide (Render + Vercel) — India Garden SCV
 
-This guide takes the IndiaGarden backend and admin portal from local development to
+This guide takes the India Garden backend and admin portal from local development to
 production. The mobile app's Play Store steps are in `GOOGLE_PLAY_RELEASE_GUIDE.md`.
+Firebase setup for the Android app is in `apps/mobile/FIREBASE_SETUP.md`.
+
+**Restaurant:** India Garden · 24341 Magic Mountain Pkwy, Santa Clarita, CA 91355  
+**Website:** https://indiagardenscv.com/  
+**Android applicationId:** `com.indiagarden.app`
 
 | Piece | Where it deploys | Config in repo |
 |---|---|---|

@@ -134,18 +134,27 @@ class _ItemDetailBodyState extends ConsumerState<_ItemDetailBody> {
       }
     }
 
-    ref.read(cartControllerProvider.notifier).addItem(
-          menuItemId: widget.item.id,
-          name: widget.item.name,
-          unitPriceCents: widget.item.priceCents,
-          imageUrl: widget.item.imageUrl,
-          quantity: _quantity,
-          modifiers: selectedModifiers,
-          specialInstructions: _instructionsController.text.trim().isEmpty
-              ? null
-              : _instructionsController.text.trim(),
-        );
+    try {
+      ref.read(cartControllerProvider.notifier).addItem(
+            menuItemId: widget.item.id,
+            name: widget.item.name,
+            unitPriceCents: widget.item.priceCents,
+            imageUrl: widget.item.imageUrl,
+            quantity: _quantity,
+            modifiers: selectedModifiers,
+            specialInstructions: _instructionsController.text.trim().isEmpty
+                ? null
+                : _instructionsController.text.trim(),
+          );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not add to cart: $error')),
+      );
+      return;
+    }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Added ${widget.item.name} to cart')),
     );

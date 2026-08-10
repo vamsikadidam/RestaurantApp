@@ -12,7 +12,7 @@ void main() {
       ),
     );
 
-    expect(find.text('IndiaGarden'), findsOneWidget);
+    expect(find.text('India Garden'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }
